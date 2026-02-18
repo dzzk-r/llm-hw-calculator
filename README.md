@@ -1,3 +1,6 @@
+https://dzzk-r.github.io/llm-hw-calculator/
+
+
 # LLM Hardware Calculator (React + Vite + Tailwind + Recharts)
 
 KV-aware memory calculator + compute/bandwidth sanity checks.
