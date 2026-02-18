@@ -1,0 +1,31 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Vite / cache
+.vite/
+.cache/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Archive / artifacts
+*.zip
+llm-hw-calculator.zip
+
+# Optional: if you ever use TypeScript builds
+*.tsbuildinfo
+

@@ -1,0 +1,20 @@
+# Prefer deterministic installs
+fund=false
+audit=false
+progress=true
+
+# Be a bit quieter by default (change to "info" if you want)
+loglevel=warn
+
+# Better reliability on flaky networks
+fetch-retries=5
+fetch-retry-factor=2
+fetch-retry-mintimeout=10000
+fetch-retry-maxtimeout=60000
+
+# Strict peer deps is useful with pnpm (optional; set false if it annoys you)
+strict-peer-dependencies=true
+
+# If you use a private registry, uncomment:
+# registry=https://registry.npmjs.org/
+
