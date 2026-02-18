@@ -35,7 +35,7 @@ jobs:
           run_install: false
 
       - name: Install deps
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       # IMPORTANT for GitHub Pages:
       # If your repo is https://github.com/<user>/<repo>
