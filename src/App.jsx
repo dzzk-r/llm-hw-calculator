@@ -338,12 +338,6 @@ export default function App() {
               Profiles
             </Badge>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Badge tone="info">UI: English</Badge>
-            <Badge tone="neutral">KV-aware</Badge>
-            <Badge tone="neutral">Edge presets</Badge>
-            <Badge tone="neutral">Profiles</Badge>
-          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
