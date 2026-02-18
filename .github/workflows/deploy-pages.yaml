@@ -28,11 +28,14 @@ jobs:
           node-version-file: .node-version
           cache: "pnpm"
 
-      - name: Enable corepack (pnpm)
-        run: corepack enable
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
 
       - name: Install deps
-        run: pnpm install --frozen-lockfile=false
+        run: pnpm install --frozen-lockfile
 
       # IMPORTANT for GitHub Pages:
       # If your repo is https://github.com/<user>/<repo>
