@@ -43,7 +43,7 @@ jobs:
         env:
           # Option A (recommended): set base in vite.config.js instead of this.
           # VITE_BASE: "/${{ github.event.repository.name }}/"
-	  VITE_BASE: "/${{ github.event.repository.name }}/"
+          VITE_BASE: "/${{ github.event.repository.name }}/"
           CI: "true"
 
       - name: Upload artifact

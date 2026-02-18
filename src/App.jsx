@@ -29,6 +29,8 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend
 } from "recharts";
 
+import Modal from "./components/Modal.jsx";
+
 function fmt(n, digits=2) {
   return Number(n).toFixed(digits);
 }
@@ -66,6 +68,58 @@ function TooltipFmt({ active, payload, label }) {
 }
 
 export default function App() {
+  const [badgeModal, setBadgeModal] = useState({ open: false, key: null });
+
+  const BADGE_INFO = {
+    ui: {
+      title: "UI: English",
+      body: (
+        <>
+          <p className="text-zinc-300">
+            The UI is intentionally English for easy sharing and hosting. Your original discussion can stay RU/HE,
+            but the calculator remains “exportable”.
+          </p>
+        </>
+      ),
+    },
+    kv: {
+      title: "KV-aware",
+      body: (
+        <>
+          <p className="text-zinc-300">
+            Memory is split into <b>weights</b> and <b>KV cache</b>. KV scales linearly with effective KV tokens and
+            often dominates at 8k+ contexts.
+          </p>
+          <ul className="list-disc pl-5 mt-2 text-zinc-400 text-sm">
+            <li>KV per token ≈ 2 × layers × head_dim × kvHeads × bytes</li>
+            <li>“128k context” claims usually rely on sliding windows / GQA / KV quant</li>
+          </ul>
+        </>
+      ),
+    },
+    edge: {
+      title: "Edge presets",
+      body: (
+        <>
+          <p className="text-zinc-300">
+            One-click configs intended to reflect edge constraints (RAM/bandwidth). They’re not “benchmarks” —
+            they’re guardrails to expose impossible marketing.
+          </p>
+        </>
+      ),
+    },
+    profiles: {
+      title: "Profiles",
+      body: (
+        <>
+          <p className="text-zinc-300">
+            Hardware profiles are stored locally in <b>localStorage</b> (no backend). Save/apply/delete quickly.
+          </p>
+        </>
+      ),
+    },
+  };
+
   const [profiles, setProfiles] = useState(() => loadProfiles());
 
   // Model
@@ -253,6 +307,36 @@ export default function App() {
             <div className="text-sm text-zinc-400 mt-1">
               Memory (weights + KV) + compute & bandwidth sanity checks. Designed to expose “marketing nonsense”.
             </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Badge
+              tone="info"
+              title="Click for details"
+              onClick={() => setBadgeModal({ open: true, key: "ui" })}
+            >
+              UI: English
+            </Badge>
+            <Badge
+               tone="neutral"
+               title="Click for details"
+               onClick={() => setBadgeModal({ open: true, key: "kv" })}
+            >
+              KV-aware
+            </Badge>
+            <Badge
+              tone="neutral"
+              title="Click for details"
+              onClick={() => setBadgeModal({ open: true, key: "edge" })}
+            >
+              Edge presets
+            </Badge>
+            <Badge
+              tone="neutral"
+              title="Click for details"
+              onClick={() => setBadgeModal({ open: true, key: "profiles" })}
+            >
+              Profiles
+            </Badge>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Badge tone="info">UI: English</Badge>
@@ -613,6 +697,13 @@ export default function App() {
           Disclaimer: model shapes are approximate; bandwidth model is intentionally pessimistic to flag impossible claims.
         </div>
       </div>
+      <Modal
+        open={badgeModal.open}
+        title={BADGE_INFO[badgeModal.key]?.title ?? "Info"}
+         onClose={() => setBadgeModal({ open: false, key: null })}
+      >
+        {BADGE_INFO[badgeModal.key]?.body ?? null}
+      </Modal>
     </div>
   );
 }
