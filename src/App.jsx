@@ -2,13 +2,12 @@ import React, { useMemo, useState, useEffect } from "react";
 import {
   DEFAULT_CONTEXT_OPTIONS,
   HARDWARE_PRESETS,
-  MODEL_PRESETS,
-  IMPOSSIBLE_TRICKS,
-  ENGINE_PRESETS,
-  WEIGHT_DTYPE_BYTES,
   KV_DTYPE_BYTES,
-  KV_DTYPE_OVERHEAD,
+  MODEL_PRESETS,
+  WEIGHT_DTYPE_BYTES,
+  IMPOSSIBLE_TRICKS,
   KV_QUANT_SCHEMES,
+  ENGINE_PRESETS,
 } from "./lib/presets.js";
 import { loadProfiles, saveProfiles } from "./lib/storage.js";
 import {
@@ -202,9 +201,6 @@ export default function App() {
       alignment: kvAlignment,
       copiesFactor: 1 + (kvCopiesFactorPct / 100),
       blockOverheadPct: kvExtraOverheadPct,
-      KV_DTYPE_BYTES,
-      KV_QUANT_SCHEMES,
-      KV_DTYPE_OVERHEAD,
     });
     const kvBytesTotal = kvPerTokBytes * kvTokensEff;
 
@@ -279,9 +275,6 @@ export default function App() {
         alignment: kvAlignment,
         copiesFactor: 1 + (kvCopiesFactorPct / 100),
         blockOverheadPct: kvExtraOverheadPct,
-        KV_DTYPE_BYTES,
-        KV_QUANT_SCHEMES,
-        KV_DTYPE_OVERHEAD
       });
       const kvBytesTotal = kvPerTokBytes * kvTokensEff;
 
@@ -457,7 +450,6 @@ export default function App() {
     const e = ENGINE_PRESETS.find(x => x.id === id);
     if (!e) return;
     setEnginePresetId(id);
-    if (e.kvDtype) setKvDtype(e.kvDtype);
     setKvSchemeId(e.kvSchemeId);
     setKvGroupSize(e.kvGroupSize);
     setKvAlignment(e.kvAlignment);
@@ -798,8 +790,7 @@ export default function App() {
                           setTops(60);
                           setUtilization(3);
                           // Approximate: set kvHeads smaller than heads (GQA-ish)
-                          const p30 = MODEL_PRESETS.find(p => p.id === "30b");
-                          setKvHeads(Math.max(8, Math.floor((p30?.heads ?? heads) / 4)));
+                          setKvHeads(Math.max(8, Math.floor(heads / 4)));
                         }}
                     >
                       <div className="text-sm text-zinc-200">“128k prompt” reality check (30B, sliding 8k, INT8 KV)
