@@ -7,8 +7,21 @@ export const WEIGHT_DTYPE_BYTES = {
 };
 
 export const KV_DTYPE_BYTES = {
-  int8: 1,
+  fp32: 4,
   fp16: 2,
+  bf16: 2,
+  fp8: 1,   // e4m3/e5m2 storage = 1 byte
+  int8: 1,
+  int4: 0.5,
+};
+
+export const KV_DTYPE_OVERHEAD = {
+  fp32: 1.0,
+  fp16: 1.0,
+  bf16: 1.0,
+  fp8: 1.05,
+  int8: 1.1,
+  int4: 1.25,
 };
 
 export const DEFAULT_CONTEXT_OPTIONS = [
@@ -65,5 +78,78 @@ export const IMPOSSIBLE_TRICKS = [
     title: "KV Offload (RAM↔SSD) / Unified Memory tricks",
     effect: "Makes 'it runs' possible when RAM is insufficient.",
     whatChanges: "Tokens/sec collapses; useful for demos, not for 20+ tok/s.",
+  },
+];
+
+export const KV_QUANT_SCHEMES = [
+  { id: "none", label: "None (raw)", bytesPerElemMul: 1.0, metaPerGroupBytes: 0 },
+  // INT8 KV: обычно scale (FP16) per group/per-channel; упростим как FP16 scale per group
+  { id: "int8-group", label: "INT8 + scale/group", bytesPerElemMul: 1.0, metaPerGroupBytes: 2 },
+  // INT4 KV: обычно scale (FP16) + packed 4-bit values
+  { id: "int4-group", label: "INT4 packed + scale/group", bytesPerElemMul: 1.0, metaPerGroupBytes: 2 },
+];
+
+export const ENGINE_PRESETS = [
+  {
+    id: "naive",
+    label: "Naive (optimistic)",
+    desc: "No padding/copies; best-case math.",
+    kvSchemeId: "none",
+    kvGroupSize: 64,
+    kvAlignment: 0,
+    kvCopiesFactorPct: 0,
+    kvExtraOverheadPct: 0,
+  },
+  {
+    id: "llamacpp",
+    label: "llama.cpp (practical)",
+    desc: "Some alignment, small overhead/copies.",
+    kvSchemeId: "none",
+    kvGroupSize: 64,
+    kvAlignment: 128,
+    kvCopiesFactorPct: 8,
+    kvExtraOverheadPct: 3,
+  },
+  {
+    id: "vllm",
+    label: "vLLM (paged KV)",
+    desc: "Paged KV + fragmentation, higher overhead.",
+    kvSchemeId: "none",
+    kvGroupSize: 64,
+    kvAlignment: 256,
+    kvCopiesFactorPct: 22,
+    kvExtraOverheadPct: 8,
+  },
+  {
+    id: "trtllm",
+    label: "TensorRT-LLM (GPU-ish)",
+    desc: "Bigger alignment; moderate overhead.",
+    kvSchemeId: "none",
+    kvGroupSize: 64,
+    kvAlignment: 256,
+    kvCopiesFactorPct: 12,
+    kvExtraOverheadPct: 5,
+  },
+  {
+    id: "kv-int8",
+    label: "KV INT8 (quant KV)",
+    desc: "KV quantization with metadata; realistic overhead.",
+    kvSchemeId: "int8-group",
+    kvGroupSize: 64,
+    kvAlignment: 256,
+    kvCopiesFactorPct: 15,
+    kvExtraOverheadPct: 8,
+    kvDtype: "int8",
+  },
+  {
+    id: "kv-int4",
+    label: "KV INT4 (aggressive)",
+    desc: "Very optimistic unless validated; metadata+padding included.",
+    kvSchemeId: "int4-group",
+    kvGroupSize: 64,
+    kvAlignment: 256,
+    kvCopiesFactorPct: 18,
+    kvExtraOverheadPct: 10,
+    kvDtype: "int4",
   },
 ];
