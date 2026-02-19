@@ -45,7 +45,19 @@ export const HARDWARE_PRESETS = [
   { id: "lpddr5-6400",   label: "LPDDR5-6400 ~51 GB/s peak",     bandwidthGBs: 51 },
   { id: "lpddr5x-8533",  label: "LPDDR5X-8533 ~68 GB/s peak",   bandwidthGBs: 68 },
   { id: "hbm2e",         label: "HBM2e class ~800 GB/s peak",    bandwidthGBs: 800 },
+  // GPU HBM ballparks (for the "reality check" chart). These are peak specs; sustained is lower.
+  { id: "v100-hbm2",     label: "NVIDIA V100 HBM2 ~900 GB/s peak", bandwidthGBs: 900 },
+  { id: "a100-hbm2e",    label: "NVIDIA A100 HBM2e ~2000 GB/s peak", bandwidthGBs: 2000 },
   { id: "manual",        label: "Manual (set your own)",         bandwidthGBs: 75 },
+];
+
+// Optional: accelerator presets (TOPS/TFLOPS-like numbers vary by dtype & marketing).
+// Treat these as UI helpers, not truth. You can expose them later as a dropdown.
+export const ACCEL_PRESETS = [
+  { id: "hailo8",  label: "Hailo-8 (INT8 peak ~26 TOPS)", tops: 26, note: "Host RAM/BW still dominates KV." },
+  { id: "hailo10", label: "Hailo-10 (INT8 peak ~40 TOPS)", tops: 40, note: "Host RAM/BW still dominates KV." },
+  { id: "v100",    label: "NVIDIA V100 (INT8/FP16 varies)", tops: 120, note: "Rough placeholder; set manually per dtype." },
+  { id: "a100",    label: "NVIDIA A100 (INT8/FP16 varies)", tops: 300, note: "Rough placeholder; set manually per dtype." },
 ];
 
 export const IMPOSSIBLE_TRICKS = [
@@ -139,7 +151,6 @@ export const ENGINE_PRESETS = [
     kvAlignment: 256,
     kvCopiesFactorPct: 15,
     kvExtraOverheadPct: 8,
-    kvDtype: "int8",
   },
   {
     id: "kv-int4",
@@ -150,6 +161,5 @@ export const ENGINE_PRESETS = [
     kvAlignment: 256,
     kvCopiesFactorPct: 18,
     kvExtraOverheadPct: 10,
-    kvDtype: "int4",
   },
 ];
