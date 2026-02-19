@@ -13,10 +13,42 @@ export function clamp(n, min, max) {
  * 2 * layers * head_dim * kvHeads * bytesPerElement
  * where head_dim = hidden / heads
  */
-export function kvBytesPerToken({ layers, hidden, heads, kvHeads, kvDtype }) {
-  const headDim = hidden / heads;
-  const b = KV_DTYPE_BYTES[kvDtype] ?? 2;
-  return 2 * layers * headDim * kvHeads * b;
+export function kvBytesPerTokenRealistic({
+  layers,
+  hidden,
+  heads,
+  kvHeads,
+  kvDtype,
+  kvSchemeId = "none",
+  groupSize = 64,
+  alignment = 256,
+  copiesFactor = 1.10,
+  blockOverheadPct = 0,
+  KV_DTYPE_BYTES,
+  KV_QUANT_SCHEMES,
+  KV_DTYPE_OVERHEAD
+}) {
+    const headDim = hidden / Math.max(1, heads);
+    const elemsPerToken = 2 * layers * headDim * Math.max(1, kvHeads);
+
+    const dtypeBytes = KV_DTYPE_BYTES[kvDtype] ?? 2;
+    const scheme =
+        KV_QUANT_SCHEMES.find((s) => s.id === kvSchemeId) ?? KV_QUANT_SCHEMES[0];
+
+    const dtypeOver = KV_DTYPE_OVERHEAD?.[kvDtype] ?? 1.0;
+    const valueBytes =
+        elemsPerToken * dtypeBytes * dtypeOver * (scheme.bytesPerElemMul ?? 1.0);
+
+    const groups = Math.ceil(elemsPerToken / Math.max(1, groupSize));
+    const metaBytes = groups * (scheme.metaPerGroupBytes ?? 0);
+
+    const raw = valueBytes + metaBytes;
+    const aligned = alignment > 0 ? Math.ceil(raw / alignment) * alignment : raw;
+
+    const withCopies = aligned * Math.max(1.0, copiesFactor);
+    const total = withCopies * (1 + blockOverheadPct / 100);
+
+    return total;
 }
 
 export function weightsBytes({ paramsB, weightDtype, quantOverheadPct }) {
@@ -26,6 +58,53 @@ export function weightsBytes({ paramsB, weightDtype, quantOverheadPct }) {
   const overhead = raw * (quantOverheadPct / 100);
   return raw + overhead;
 }
+
+export function kvBytesPerTokenRealistic({
+    layers,
+    hidden,
+    heads,
+    kvHeads,
+    kvDtype,
+    kvSchemeId = "none",
+    groupSize = 64,
+    alignment = 256,          // bytes alignment per token chunk (heuristic)
+    copiesFactor = 1.10,      // runtime copies/fragmentation factor
+    blockOverheadPct = 0,     // optional extra overhead
+    KV_DTYPE_BYTES,
+    KV_QUANT_SCHEMES,
+    KV_DTYPE_OVERHEAD
+}) {
+  // base elems per token for K+V
+  // We keep your assumption: base dims ~ layers * hidden (Llama-like approximation)
+  const headDim = hidden / Math.max(1, heads);
+  const elemsPerToken = 2 * layers * headDim * Math.max(1, kvHeads);
+
+  const dtypeBytes = KV_DTYPE_BYTES[kvDtype] ?? 2;
+
+  const scheme = KV_QUANT_SCHEMES.find(s => s.id === kvSchemeId) ?? KV_QUANT_SCHEMES[0];
+
+  // 1) value storage bytes
+  const dtypeOver = (KV_DTYPE_OVERHEAD?.[kvDtype] ?? 1.0);
+  const valueBytes = elemsPerToken * dtypeBytes * dtypeOver * (scheme.bytesPerElemMul ?? 1.0);
+
+  // 2) quant metadata: scale bytes per group
+  // group count ≈ elems / groupSize (ceil)
+  const groups = Math.ceil(elemsPerToken / Math.max(1, groupSize));
+  const metaBytes = groups * (scheme.metaPerGroupBytes ?? 0);
+
+  // 3) pack/alignment: pad total to alignment boundary
+  const raw = valueBytes + metaBytes;
+  const aligned = alignment > 0 ? Math.ceil(raw / alignment) * alignment : raw;
+
+  // 4) runtime copies / fragmentation
+  const withCopies = aligned * Math.max(1.0, copiesFactor);
+
+  // 5) optional extra overhead (workspace/paging headers etc)
+  const total = withCopies * (1 + (blockOverheadPct / 100));
+
+  return total;
+}
+
 
 /**
  * Effective KV tokens:
