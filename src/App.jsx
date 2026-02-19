@@ -511,6 +511,75 @@ export default function App() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
+                <Card title="Edge-AI “sane defaults”">
+                  <div className="text-xs text-zinc-400 mb-2">
+                    One-click configurations that match real edge constraints.
+                  </div>
+                  <div className="grid gap-2">
+                    <button
+                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
+                        type="button"
+                        onClick={() => {
+                          applyModelPreset("7b");
+                          setWeightDtype("int4");
+                          setKvDtype("fp16");
+                          setContext(4096);
+                          setSlidingWindowEnabled(false);
+                          setRamGiB(16);
+                          setBandwidthPreset("lpddr5x-8533");
+                          setTops(26);
+                          setUtilization(2);
+                        }}
+                    >
+                      <div className="text-sm text-zinc-200">Edge Lite (7B, 4k, 16GiB)</div>
+                      <div className="text-xs text-zinc-500">Plausible 20+ tok/s with good runtime (depends on accel).
+                      </div>
+                    </button>
+
+                    <button
+                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
+                        type="button"
+                        onClick={() => {
+                          applyModelPreset("10b");
+                          setWeightDtype("int4");
+                          setKvDtype("fp16");
+                          setContext(8192);
+                          setSlidingWindowEnabled(false);
+                          setRamGiB(32);
+                          setBandwidthPreset("ddr5-5600-2ch");
+                          setTops(26);
+                          setUtilization(2);
+                        }}
+                    >
+                      <div className="text-sm text-zinc-200">Edge Pro (10B, 8k, 32GiB DDR5)</div>
+                      <div className="text-xs text-zinc-500">KV math regime; shows where DDR4 starts choking.</div>
+                    </button>
+
+                    <button
+                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
+                        type="button"
+                        onClick={() => {
+                          applyModelPreset("30b");
+                          setWeightDtype("int4");
+                          setKvDtype("int8");
+                          setContext(128000);
+                          setSlidingWindowEnabled(true);
+                          setSlidingWindow(8192);
+                          setRamGiB(64);
+                          setBandwidthPreset("ddr5-5600-2ch");
+                          setTops(60);
+                          setUtilization(3);
+                          // Approximate: set kvHeads smaller than heads (GQA-ish)
+                          setKvHeads(Math.max(8, Math.floor(heads / 4)));
+                        }}
+                    >
+                      <div className="text-sm text-zinc-200">“128k prompt” reality check (30B, sliding 8k, INT8 KV)
+                      </div>
+                      <div className="text-xs text-zinc-500">How “128k+” is marketed without 200GB KV.</div>
+                    </button>
+                  </div>
+                </Card>
+
                 <Card title="Model">
                   <div className="grid grid-cols-2 gap-3">
                     <Select
@@ -528,6 +597,91 @@ export default function App() {
                   <div className="mt-3 text-xs text-zinc-500">
                     KV size scales with <span className="text-zinc-300">layers × head_dim × kvHeads × tokens</span>.
                   </div>
+                </Card>
+
+                <Card
+                    title="Hardware + performance"
+                    right={<button onClick={saveCurrentProfile}
+                                   className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
+                                   type="button">Save profile</button>}
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input label="RAM available (GiB)" value={ramGiB} onChange={setRamGiB} min={1} step={1}/>
+                    <Input label="TOPS (peak @ chosen accel dtype)" value={tops} onChange={setTops} min={0} step={1}/>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    <Slider
+                        label="LLM utilization (compute)"
+                        value={utilization}
+                        onChange={setUtilization}
+                        min={0.2}
+                        max={20}
+                        step={0.1}
+                        suffix="%"
+                    />
+                    <Select
+                        label="Memory bandwidth preset"
+                        value={bandwidthPreset}
+                        onChange={(v) => {
+                          setBandwidthPreset(v);
+                        }}
+                        options={HARDWARE_PRESETS.map(h => ({value: h.id, label: h.label}))}
+                    />
+                    {bandwidthPreset === "manual" ? (
+                        <Input label="Bandwidth (GB/s)" value={bandwidthGBsManual} onChange={setBandwidthGBsManual}
+                               min={1}
+                               step={1}/>
+                    ) : (
+                        <div className="text-xs text-zinc-500">Using preset: <span
+                            className="text-zinc-300">{bandwidthGBs} GB/s peak</span> (sustained lower).</div>
+                    )}
+
+                    <SectionTitle>Bandwidth sanity knobs (pessimistic)</SectionTitle>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Slider label="Attn read factor" value={attnReadFactor} onChange={setAttnReadFactor} min={0.2}
+                              max={2.0}
+                              step={0.1}/>
+                      <Slider label="Weights read factor" value={weightsReadFactor} onChange={setWeightsReadFactor}
+                              min={0.2}
+                              max={2.0} step={0.1}/>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-zinc-500 mb-2 mt-8">
+                    Stored in <span className="text-zinc-300">localStorage</span>. No backend.
+                  </div>
+                  {profiles.length === 0 ? (
+                      <div className="text-sm text-zinc-400">No profiles yet. Click “Save profile”.</div>
+                  ) : (
+                      <div className="space-y-2">
+                        {profiles.map((p) => (
+                            <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-sm text-zinc-200 font-semibold">{p.name}</div>
+                                  <div className="text-xs text-zinc-500 mt-1">
+                                    RAM: <span className="text-zinc-300">{p.ramGiB} GiB</span> · BW: <span
+                                      className="text-zinc-300">{p.bandwidthGBs} GB/s</span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                      className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
+                                      type="button" onClick={() => applyProfile(p)}>
+                                    Apply
+                                  </button>
+                                  <button
+                                      className="text-xs px-2 py-1 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                                      type="button" onClick={() => deleteProfile(p.id)}>
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                        ))}
+                      </div>
+                  )}
                 </Card>
 
                 <Card title="Precision & overheads">
@@ -645,160 +799,6 @@ export default function App() {
                   </div>
                 </Card>
 
-                <Card
-                    title="Hardware + performance"
-                    right={<button onClick={saveCurrentProfile}
-                                   className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
-                                   type="button">Save profile</button>}
-                >
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input label="RAM available (GiB)" value={ramGiB} onChange={setRamGiB} min={1} step={1}/>
-                    <Input label="TOPS (peak @ chosen accel dtype)" value={tops} onChange={setTops} min={0} step={1}/>
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <Slider
-                        label="LLM utilization (compute)"
-                        value={utilization}
-                        onChange={setUtilization}
-                        min={0.2}
-                        max={20}
-                        step={0.1}
-                        suffix="%"
-                    />
-                    <Select
-                        label="Memory bandwidth preset"
-                        value={bandwidthPreset}
-                        onChange={(v) => {
-                          setBandwidthPreset(v);
-                        }}
-                        options={HARDWARE_PRESETS.map(h => ({value: h.id, label: h.label}))}
-                    />
-                    {bandwidthPreset === "manual" ? (
-                        <Input label="Bandwidth (GB/s)" value={bandwidthGBsManual} onChange={setBandwidthGBsManual}
-                               min={1}
-                               step={1}/>
-                    ) : (
-                        <div className="text-xs text-zinc-500">Using preset: <span
-                            className="text-zinc-300">{bandwidthGBs} GB/s peak</span> (sustained lower).</div>
-                    )}
-
-                    <SectionTitle>Bandwidth sanity knobs (pessimistic)</SectionTitle>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Slider label="Attn read factor" value={attnReadFactor} onChange={setAttnReadFactor} min={0.2}
-                              max={2.0}
-                              step={0.1}/>
-                      <Slider label="Weights read factor" value={weightsReadFactor} onChange={setWeightsReadFactor}
-                              min={0.2}
-                              max={2.0} step={0.1}/>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-zinc-500 mb-2 mt-8">
-                    Stored in <span className="text-zinc-300">localStorage</span>. No backend.
-                  </div>
-                  {profiles.length === 0 ? (
-                      <div className="text-sm text-zinc-400">No profiles yet. Click “Save profile”.</div>
-                  ) : (
-                      <div className="space-y-2">
-                        {profiles.map((p) => (
-                            <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="text-sm text-zinc-200 font-semibold">{p.name}</div>
-                                  <div className="text-xs text-zinc-500 mt-1">
-                                    RAM: <span className="text-zinc-300">{p.ramGiB} GiB</span> · BW: <span
-                                      className="text-zinc-300">{p.bandwidthGBs} GB/s</span>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                      className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
-                                      type="button" onClick={() => applyProfile(p)}>
-                                    Apply
-                                  </button>
-                                  <button
-                                      className="text-xs px-2 py-1 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-200"
-                                      type="button" onClick={() => deleteProfile(p.id)}>
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                  )}
-
-                </Card>
-
-                <Card title="Edge-AI “sane defaults”">
-                  <div className="text-xs text-zinc-400 mb-2">
-                    One-click configurations that match real edge constraints.
-                  </div>
-                  <div className="grid gap-2">
-                    <button
-                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
-                        type="button"
-                        onClick={() => {
-                          applyModelPreset("7b");
-                          setWeightDtype("int4");
-                          setKvDtype("fp16");
-                          setContext(4096);
-                          setSlidingWindowEnabled(false);
-                          setRamGiB(16);
-                          setBandwidthPreset("lpddr5x-8533");
-                          setTops(26);
-                          setUtilization(2);
-                        }}
-                    >
-                      <div className="text-sm text-zinc-200">Edge Lite (7B, 4k, 16GiB)</div>
-                      <div className="text-xs text-zinc-500">Plausible 20+ tok/s with good runtime (depends on accel).
-                      </div>
-                    </button>
-
-                    <button
-                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
-                        type="button"
-                        onClick={() => {
-                          applyModelPreset("10b");
-                          setWeightDtype("int4");
-                          setKvDtype("fp16");
-                          setContext(8192);
-                          setSlidingWindowEnabled(false);
-                          setRamGiB(32);
-                          setBandwidthPreset("ddr5-5600-2ch");
-                          setTops(26);
-                          setUtilization(2);
-                        }}
-                    >
-                      <div className="text-sm text-zinc-200">Edge Pro (10B, 8k, 32GiB DDR5)</div>
-                      <div className="text-xs text-zinc-500">KV math regime; shows where DDR4 starts choking.</div>
-                    </button>
-
-                    <button
-                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
-                        type="button"
-                        onClick={() => {
-                          applyModelPreset("30b");
-                          setWeightDtype("int4");
-                          setKvDtype("int8");
-                          setContext(128000);
-                          setSlidingWindowEnabled(true);
-                          setSlidingWindow(8192);
-                          setRamGiB(64);
-                          setBandwidthPreset("ddr5-5600-2ch");
-                          setTops(60);
-                          setUtilization(3);
-                          // Approximate: set kvHeads smaller than heads (GQA-ish)
-                          setKvHeads(Math.max(8, Math.floor(heads / 4)));
-                        }}
-                    >
-                      <div className="text-sm text-zinc-200">“128k prompt” reality check (30B, sliding 8k, INT8 KV)
-                      </div>
-                      <div className="text-xs text-zinc-500">How “128k+” is marketed without 200GB KV.</div>
-                    </button>
-                  </div>
-                </Card>
 
                 <Card title="Context controls (the KV bomb)">
                   <div className="grid grid-cols-2 gap-3">
@@ -831,10 +831,9 @@ export default function App() {
                     Effective KV tokens: <span className="text-zinc-200 font-semibold">{computed.kvTokensEff}</span>
                   </div>
                 </Card>
-
-
               </div>
 
+              {/*
               <div className="grid md:grid-cols-2 gap-4 mt-4">
                 <Card
                     title="Scaling table + chart"
@@ -852,50 +851,6 @@ export default function App() {
                     Open the side panel to view the full scaling chart + table (context vs KV vs tok/s).
                   </div>
                 </Card>
-
-
-                {/*<Card title="Scaling table + chart">*/}
-                {/*  <div className="text-xs text-zinc-500 mb-2">*/}
-                {/*    KV & tok/s evolve with context (effective KV respects sliding window).*/}
-                {/*  </div>*/}
-                {/*  <div className="h-72">*/}
-                {/*    <ResponsiveContainer width="100%" height="100%">*/}
-                {/*      <LineChart data={contextTable}>*/}
-                {/*        <CartesianGrid strokeDasharray="3 3"/>*/}
-                {/*        <XAxis dataKey="context"/>*/}
-                {/*        <YAxis/>*/}
-                {/*        <Tooltip content={<TooltipFmt/>}/>*/}
-                {/*        <Legend/>*/}
-                {/*        <Line type="monotone" dataKey="totalGiB" name="Total GiB" dot={false}/>*/}
-                {/*        <Line type="monotone" dataKey="tokSecFinal" name="tok/s (final)" dot={false}/>*/}
-                {/*      </LineChart>*/}
-                {/*    </ResponsiveContainer>*/}
-                {/*  </div>*/}
-
-                {/*  <div className="mt-4 overflow-x-auto">*/}
-                {/*    <table className="w-full text-xs border border-zinc-800 rounded-xl overflow-hidden">*/}
-                {/*      <thead className="bg-zinc-900">*/}
-                {/*      <tr>*/}
-                {/*        <th className="text-left p-2 border-b border-zinc-800">Context</th>*/}
-                {/*        <th className="text-right p-2 border-b border-zinc-800">KV (GiB)</th>*/}
-                {/*        <th className="text-right p-2 border-b border-zinc-800">Total (GiB)</th>*/}
-                {/*        <th className="text-right p-2 border-b border-zinc-800">tok/s final</th>*/}
-                {/*      </tr>*/}
-                {/*      </thead>*/}
-                {/*      <tbody>*/}
-                {/*      {contextTable.map((r) => (*/}
-                {/*          <tr key={r.context} className="odd:bg-zinc-950 even:bg-zinc-950/60">*/}
-                {/*            <td className="p-2 border-b border-zinc-900">{r.context}</td>*/}
-                {/*            <td className="p-2 border-b border-zinc-900 text-right">{fmt(r.kvGiB, 2)}</td>*/}
-                {/*            <td className="p-2 border-b border-zinc-900 text-right">{fmt(r.totalGiB, 2)}</td>*/}
-                {/*            <td className="p-2 border-b border-zinc-900 text-right">{fmt(r.tokSecFinal, 2)}</td>*/}
-                {/*          </tr>*/}
-                {/*      ))}*/}
-                {/*      </tbody>*/}
-                {/*    </table>*/}
-                {/*  </div>*/}
-                {/*</Card>*/}
-
 
                 <Card title="“Impossible” explanations (how people claim 128k on 8–16GB)">
                   <div className="text-xs text-zinc-500 mb-3">
@@ -924,7 +879,7 @@ export default function App() {
                   </div>
                 </Card>
               </div>
-
+              */}
               <div className="mt-6 text-xs text-zinc-500">
                 Disclaimer: model shapes are approximate; bandwidth model is intentionally pessimistic to flag
                 impossible
