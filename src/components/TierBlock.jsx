@@ -24,7 +24,7 @@ export default function TierBlock({
 
     const headerHint = useMemo(() => {
         if (!canCollapse) return null;
-        return isCollapsed ? "Show ▼" : "Hide ▲";
+        return isCollapsed ? "Show +" : "Hide -";
     }, [canCollapse, isCollapsed]);
 
     return (

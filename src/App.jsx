@@ -37,7 +37,7 @@ import ProfileManager from "./components/ProfileManager";
 import SidePanel from "./components/SidePanel.jsx";
 import SidePanelDock from "./components/SidePanelDock.jsx";
 import TierBlock from "./components/TierBlock.jsx";
-
+import PlannedCard from "./components/PlannedCard.jsx";
 
 function fmt(n, digits=2) {
   return Number(n).toFixed(digits);
@@ -459,23 +459,6 @@ export default function App() {
     setKvExtraOverheadPct(e.kvExtraOverheadPct);
   }
 
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  function PlannedCard({ title, desc, releaseDate = "TBD" }) {
-    return (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-sm text-zinc-200 font-semibold">{title}</div>
-              {desc ? <div className="text-xs text-zinc-500 mt-1">{desc}</div> : null}
-            </div>
-            <div className="text-xs text-zinc-500 shrink-0">release-date: {releaseDate}</div>
-          </div>
-          <div className="mt-2 text-xs text-zinc-600 italic">planned (placeholder)</div>
-        </div>
-    );
-  }
-
   return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
         <div className="flex">
@@ -538,6 +521,25 @@ export default function App() {
                 >
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* сюда: Card Model, Card Context controls, Card Hardware+performance */}
+                    <Card title="Model">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Select
+                            label="Preset"
+                            value={modelPreset}
+                            onChange={applyModelPreset}
+                            options={MODEL_PRESETS.map(p => ({value: p.id, label: p.label}))}
+                        />
+                        <Input label="Params (B)" value={paramsB} onChange={setParamsB} min={0.1} step={0.5}/>
+                        <Input label="Layers" value={layers} onChange={setLayers} min={1} step={1}/>
+                        <Input label="Hidden" value={hidden} onChange={setHidden} min={256} step={128}/>
+                        <Input label="Heads" value={heads} onChange={setHeads} min={1} step={1}/>
+                        <Input label="KV Heads (GQA/MQA)" value={kvHeads} onChange={setKvHeads} min={1} step={1}/>
+                      </div>
+                      <div className="mt-3 text-xs text-zinc-500">
+                        KV size scales with <span className="text-zinc-300">layers × head_dim × kvHeads × tokens</span>.
+                      </div>
+                    </Card>
+
                     <PlannedCard
                         title="Prefill vs Decode (planned)"
                         bullets={[
@@ -545,7 +547,14 @@ export default function App() {
                           "Expose why decode is KV/bandwidth/scheduler bound even when TOPS looks high.",
                         ]}
                         docHint="See TODO.md → v0.3-alpha: Core Architecture & Logic"
-                    />
+                    >
+                      <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
+                        <div className="font-semibold text-zinc-200 mb-1">Important: prefill vs decode</div>
+                        People often quote “tokens/sec” from prefill or averaged throughput. Real chat UX cares
+                        about <span
+                          className="text-zinc-200">decode tok/s</span>.
+                      </div>
+                    </PlannedCard>
 
                     <PlannedCard
                         title="Regime Classifier (planned)"
@@ -592,6 +601,8 @@ export default function App() {
                   </div>
                 </TierBlock>
 
+                  {/* сюда: collapsible runtime amplification layer + ссылки на docs */}
+
                 <TierBlock
                     tone="blue"
                     title="🔵 BLUE — Advanced / Strategic layer (VP-friendly narrative)"
@@ -600,37 +611,83 @@ export default function App() {
                     collapsible
                     defaultCollapsed={true}
                 >
-                  {/* сюда: collapsible runtime amplification layer + ссылки на docs */}
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-950">
-                    <button
-                        type="button"
-                        onClick={() => setAdvancedOpen(v => !v)}
-                        className="w-full flex items-center justify-between px-3 py-2"
-                    >
-                      <div className="text-sm text-zinc-200 font-semibold">
-                        Runtime amplification layer
-                        <span className="ml-2 text-xs text-zinc-500">Deep & optional › Systems engineer friendly</span>
-                      </div>
-                      <div className="text-xs text-zinc-400">{advancedOpen ? "Hide ▲" : "Show ▼"}</div>
-                    </button>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <PlannedCard
+                        title="Runtime amplification layer (planned)"
+                        bullets={[
+                          "Keep ‘TOPS ≠ tok/s’ visible: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.",
+                          "Surface hidden multipliers: alignment, fragmentation, copiesFactor, paged-KV overhead.",
+                          "Explain why some setups look fast on prefill but collapse on decode.",
+                        ]}
+                        docHint="docs/Runtime_Amplification_Layer.md"
+                    />
 
-                    {advancedOpen ? (
-                        <div className="px-3 pb-3 text-xs text-zinc-400 space-y-2">
-                          <div>• “TOPS != tok/s”: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.
-                          </div>
-                          <div>• Add masked accelerators presets: h8m2 / h10hm2 / nvo / nvj + R-track.</div>
-                          <div>• Encoder narrative: what it accelerates (vision encoder ≠ STT encoder).</div>
-                          <div className="pt-2 text-zinc-500">
-                            Docs:
-                            <a className="ml-2 underline hover:text-zinc-300"
-                               href="/docs/Runtime_Amplification_Layer.md">Runtime
-                              Amplification</a>
-                            <a className="ml-2 underline hover:text-zinc-300" href="/docs/LM_Context.md">LM Context</a>
-                            <a className="ml-2 underline hover:text-zinc-300" href="/docs/Competitive_Context.md">Competitive
-                              Context</a>
-                          </div>
-                        </div>
-                    ) : null}
+                    <PlannedCard
+                        title="Competitive context (planned)"
+                        bullets={[
+                          "Add masked presets: h8m2 / h10hm2 / nvo / nvj + R-track (r3x / r18x).",
+                          "Show integration vs discrete accelerator trade-offs and memory-topology implications.",
+                          "Enforce: 0 explicit vendor names in UI/presets/docs (public).",
+                        ]}
+                        docHint="docs/Competitive_Context.md"
+                    />
+                  </div>
+
+                  {/* Collapsible inside BLUE is NOT needed; BLUE is collapsed by default already. */}
+                  <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-semibold text-zinc-200">Runtime amplification layer</div>
+                      <div className="text-xs text-zinc-500">Deep & optional → Systems engineer friendly</div>
+                    </div>
+
+                    <div className="mt-2 space-y-1">
+                      <div>• “TOPS ≠ tok/s”: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.</div>
+                      <div>• Masked accelerators presets: h8m2 / h10hm2 / nvo / nvj + R-track (r3x / r18x).</div>
+                      <div>• Encoder narrative: what it accelerates (vision encoder ≠ STT encoder).</div>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-zinc-900">
+                      <div className="font-semibold text-zinc-200 mb-2">Docs</div>
+
+                      {/*
+        NOTE about links:
+        - In Vite, "/docs/..." will 404 unless you serve files from /public.
+        - For v0.3-alpha, simplest is: move docs to public/docs OR link to GitHub.
+      */}
+
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        {/* Option A (recommended): GitHub links */}
+                        <a
+                            className="underline hover:text-zinc-200"
+                            href="https://github.com/dzzk-r/llm-hw-calculator/blob/release/v0.3-alpha/docs/Runtime_Amplification_Layer.md"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                          Runtime_Amplification_Layer.md
+                        </a>
+                        <a
+                            className="underline hover:text-zinc-200"
+                            href="https://github.com/dzzk-r/llm-hw-calculator/blob/release/v0.3-alpha/docs/LM_Context.md"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                          LM_Context.md
+                        </a>
+                        <a
+                            className="underline hover:text-zinc-200"
+                            href="https://github.com/dzzk-r/llm-hw-calculator/blob/release/v0.3-alpha/docs/Competitive_Context.md"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                          Competitive_Context.md
+                        </a>
+                      </div>
+
+                      <div className="mt-2 text-zinc-500">
+                        If you prefer local docs, move them into <span className="text-zinc-300">public/docs</span> and link as
+                        <span className="text-zinc-300"> /docs/…</span>.
+                      </div>
+                    </div>
                   </div>
                 </TierBlock>
               </div>
