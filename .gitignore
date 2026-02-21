@@ -29,3 +29,4 @@ llm-hw-calculator.zip
 # Optional: if you ever use TypeScript builds
 *.tsbuildinfo
 
+docs/internal/
