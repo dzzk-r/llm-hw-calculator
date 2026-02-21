@@ -231,12 +231,12 @@ export default function App() {
 
     const flags = [];
     if (context >= 128000 && !slidingWindowEnabled) flags.push("Full 128k KV grows linearly; edge RAM explodes.");
-    if (kvHeads === heads) flags.push("No GQA/MQA (kvHeads=heads) → KV is maximal.");
+    if (kvHeads === heads) flags.push("No GQA/MQA (kvHeads=heads) › KV is maximal.");
     if (kvDtype === "fp16") flags.push("KV FP16 is common, but heavy; INT8 KV halves KV size.");
     if (kvDtype === "fp8") flags.push("FP8 KV is GPU-centric; availability depends on kernels/runtime.");
     if (kvDtype === "int4") flags.push("INT4 KV is uncommon; real engines add metadata + padding. Treat as optimistic unless validated.");
     if (tokSecFinal < 20 && totalGiB <= ramGiB) flags.push("You fit in RAM but bandwidth/runtime likely caps tok/s.");
-    if (totalGiB > ramGiB) flags.push("RAM insufficient → paging/offload → tok/s collapses.");
+    if (totalGiB > ramGiB) flags.push("RAM insufficient › paging/offload › tok/s collapses.");
     if (kvSchemeId !== "none") flags.push(`KV scheme: ${kvSchemeId} w/ group=${kvGroupSize}, alignment=${kvAlignment}B, copies~+${kvCopiesFactorPct}%.`);
 
     return {
@@ -520,59 +520,69 @@ export default function App() {
                     right={<span className="text-xs text-zinc-500">release-date: TBD (see TODO.md)</span>}
                 >
                   <div className="grid md:grid-cols-2 gap-4">
-                    {/* сюда: Card Model, Card Context controls, Card Hardware+performance */}
-                    <Card title="Model">
-                      <div className="grid grid-cols-2 gap-3">
-                        <Select
-                            label="Preset"
-                            value={modelPreset}
-                            onChange={applyModelPreset}
-                            options={MODEL_PRESETS.map(p => ({value: p.id, label: p.label}))}
-                        />
-                        <Input label="Params (B)" value={paramsB} onChange={setParamsB} min={0.1} step={0.5}/>
-                        <Input label="Layers" value={layers} onChange={setLayers} min={1} step={1}/>
-                        <Input label="Hidden" value={hidden} onChange={setHidden} min={256} step={128}/>
-                        <Input label="Heads" value={heads} onChange={setHeads} min={1} step={1}/>
-                        <Input label="KV Heads (GQA/MQA)" value={kvHeads} onChange={setKvHeads} min={1} step={1}/>
-                      </div>
-                      <div className="mt-3 text-xs text-zinc-500">
-                        KV size scales with <span className="text-zinc-300">layers × head_dim × kvHeads × tokens</span>.
-                      </div>
-                    </Card>
+                    {/* LEFT: real controls */}
+                    <div className="grid gap-4">
+                      <Card title="Model">
+                        <div className="grid grid-cols-2 gap-3">
+                          <Select
+                              label="Preset"
+                              value={modelPreset}
+                              onChange={applyModelPreset}
+                              options={MODEL_PRESETS.map(p => ({ value: p.id, label: p.label }))}
+                          />
+                          <Input label="Params (B)" value={paramsB} onChange={setParamsB} min={0.1} step={0.5}/>
+                          <Input label="Layers" value={layers} onChange={setLayers} min={1} step={1}/>
+                          <Input label="Hidden" value={hidden} onChange={setHidden} min={256} step={128}/>
+                          <Input label="Heads" value={heads} onChange={setHeads} min={1} step={1}/>
+                          <Input label="KV Heads (GQA/MQA)" value={kvHeads} onChange={setKvHeads} min={1} step={1}/>
+                        </div>
+                        <div className="mt-3 text-xs text-zinc-500">
+                          KV size scales with <span className="text-zinc-300">layers × head_dim × kvHeads × tokens</span>.
+                        </div>
+                      </Card>
 
-                    <PlannedCard
-                        title="Prefill vs Decode (planned)"
-                        bullets={[
-                          "Separate prompt loading (prefill) from token generation (decode).",
-                          "Expose why decode is KV/bandwidth/scheduler bound even when TOPS looks high.",
-                        ]}
-                        docHint="See TODO.md → v0.3-alpha: Core Architecture & Logic"
-                    >
-                      <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
-                        <div className="font-semibold text-zinc-200 mb-1">Important: prefill vs decode</div>
-                        People often quote “tokens/sec” from prefill or averaged throughput. Real chat UX cares
-                        about <span
-                          className="text-zinc-200">decode tok/s</span>.
-                      </div>
-                    </PlannedCard>
+                      {/* На следующем шаге ты сюда перенесёшь реальный Card "Context controls" */}
+                      {/* <Card title="Context controls (the KV bomb)">...</Card> */}
 
-                    <PlannedCard
-                        title="Regime Classifier (planned)"
-                        bullets={[
-                          "Badge: Compute-bound / Bandwidth-bound / KV-bound / SRAM-spill.",
-                          "Keeps “TOPS ≠ tok/s” visible in UI via bottleneck attribution.",
-                        ]}
-                        docHint="See TODO.md → Regime Classifier"
-                    />
+                      {/* На следующем шаге ты сюда перенесёшь реальный Card "Hardware + performance" */}
+                      {/* <Card title="Hardware + performance">...</Card> */}
+                    </div>
 
-                    <PlannedCard
-                        title="Encoder Workload Mode (planned)"
-                        bullets={[
-                          "Workload selector: LLM / Encoder / Hybrid.",
-                          "Encoder mode: no KV growth; focuses on throughput + memory fit.",
-                        ]}
-                        docHint="See TODO.md → Encoder Workload Mode"
-                    />
+                    {/* RIGHT: planned */}
+                    <div className="grid gap-4">
+                      <PlannedCard
+                          title="Prefill vs Decode (planned)"
+                          bullets={[
+                            "Separate prompt loading (prefill) from token generation (decode).",
+                            "Expose why decode is KV/bandwidth/scheduler bound even when TOPS looks high.",
+                          ]}
+                          docHint="See TODO.md › v0.3-alpha: Core Architecture & Logic"
+                      >
+                        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
+                          <div className="font-semibold text-zinc-200 mb-1">Important: prefill vs decode</div>
+                          People often quote “tokens/sec” from prefill or averaged throughput. Real chat UX cares about{" "}
+                          <span className="text-zinc-200">decode tok/s</span>.
+                        </div>
+                      </PlannedCard>
+
+                      <PlannedCard
+                          title="Regime Classifier (planned)"
+                          bullets={[
+                            "Badge: Compute-bound / Bandwidth-bound / KV-bound / SRAM-spill.",
+                            "Keeps “TOPS ≠ tok/s” visible in UI via bottleneck attribution.",
+                          ]}
+                          docHint="See TODO.md › Regime Classifier"
+                      />
+
+                      <PlannedCard
+                          title="Encoder Workload Mode (planned)"
+                          bullets={[
+                            "Workload selector: LLM / Encoder / Hybrid.",
+                            "Encoder mode: no KV growth; focuses on throughput + memory fit.",
+                          ]}
+                          docHint="See TODO.md › Encoder Workload Mode"
+                      />
+                    </div>
                   </div>
                 </TierBlock>
 
@@ -637,7 +647,7 @@ export default function App() {
                   <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-zinc-200">Runtime amplification layer</div>
-                      <div className="text-xs text-zinc-500">Deep & optional → Systems engineer friendly</div>
+                      <div className="text-xs text-zinc-500">Deep & optional › Systems engineer friendly</div>
                     </div>
 
                     <div className="mt-2 space-y-1">
@@ -759,25 +769,6 @@ export default function App() {
                       </div>
                       <div className="text-xs text-zinc-500">How “128k+” is marketed without 200GB KV.</div>
                     </button>
-                  </div>
-                </Card>
-
-                <Card title="Model">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Select
-                        label="Preset"
-                        value={modelPreset}
-                        onChange={applyModelPreset}
-                        options={MODEL_PRESETS.map(p => ({value: p.id, label: p.label}))}
-                    />
-                    <Input label="Params (B)" value={paramsB} onChange={setParamsB} min={0.1} step={0.5}/>
-                    <Input label="Layers" value={layers} onChange={setLayers} min={1} step={1}/>
-                    <Input label="Hidden" value={hidden} onChange={setHidden} min={256} step={128}/>
-                    <Input label="Heads" value={heads} onChange={setHeads} min={1} step={1}/>
-                    <Input label="KV Heads (GQA/MQA)" value={kvHeads} onChange={setKvHeads} min={1} step={1}/>
-                  </div>
-                  <div className="mt-3 text-xs text-zinc-500">
-                    KV size scales with <span className="text-zinc-300">layers × head_dim × kvHeads × tokens</span>.
                   </div>
                 </Card>
 
