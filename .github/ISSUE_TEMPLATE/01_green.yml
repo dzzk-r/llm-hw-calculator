@@ -1,0 +1,120 @@
+name: "GREEN — UI/UX & Scaffolding (v0.3-alpha)"
+description: "Top-level user-visible structure: tier containers, collapsible sections, sidebar-only charts, placeholders."
+title: "[G] "
+labels: ["G", "v0.3-alpha", "ui"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## GREEN scope
+        This issue is for **UI/UX and scaffolding** work that improves clarity and traceability.
+        
+        **Rules (must hold):**
+        - **G/Y/B tiering** is visible (border-left grouping).
+        - Charts/tables live in the **sidebar dock** (not in the main flow).
+        - **Vendor neutrality**: no explicit vendor names in UI/presets/docs.
+
+  - type: input
+    id: goal
+    attributes:
+      label: Goal (one sentence)
+      description: What user-visible outcome should be achieved?
+      placeholder: "Add tier containers with border-left and make BLUE collapsed by default."
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / Changes
+      description: Bullet list of what you will change (files, components, behavior).
+      placeholder: |
+        - src/App.jsx: wrap sections into GREEN/YELLOW/BLUE containers with border-left
+        - src/components/Accordion.jsx: add collapsible blocks (BLUE collapsed by default)
+        - src/components/SidePanelDock.jsx: move scaling chart/table into sidebar-only content
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: Explicitly state what is NOT included (avoid scope creep).
+      placeholder: |
+        - No math-core refactor
+        - No new performance model coefficients
+        - No new preset families beyond renaming/masking
+    validations:
+      required: true
+
+  - type: input
+    id: estimate_hours
+    attributes:
+      label: Estimate (developer hours)
+      description: Rough estimate for implementation + local verification.
+      placeholder: "3–6"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort_tshirt
+    attributes:
+      label: T-shirt size
+      options:
+        - XS (≤2h)
+        - S (2–6h)
+        - M (6–12h)
+        - L (12–24h)
+        - XL (24h+)
+    validations:
+      required: true
+
+  - type: textarea
+    id: traceability
+    attributes:
+      label: Traceability (why this exists)
+      description: Link to internal context docs and explain the rationale in 2–4 lines.
+      placeholder: |
+        - Docs: docs/architecture/GYB_Model.md
+        - Docs: docs/policies/Performance_Principles.md
+        Rationale: Improve executive readability and keep deep runtime layer optional/collapsed.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      options:
+        - label: GREEN/YELLOW/BLUE containers are visible via border-left grouping (2–4px).
+          required: true
+        - label: BLUE ("Runtime Amplification Layer") is collapsed by default.
+          required: true
+        - label: Scaling chart/table appear only in the sidebar dock, not in the main content area.
+          required: true
+        - label: Placeholders include a visible "release-date" note for not-yet-implemented sections.
+          required: true
+        - label: No explicit vendor names appear in UI labels, preset IDs, or public docs.
+          required: true
+
+  - type: textarea
+    id: test_plan
+    attributes:
+      label: Test / Verification plan
+      description: How will you verify quickly?
+      placeholder: |
+        - pnpm dev: verify layout grouping and collapsed behavior
+        - Quick screenshot: sidebar chart + tiered containers visible
+        - Search check: ensure no explicit vendor names in public UI strings
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot / GIF (optional)
+      description: Attach after implementation (boosts repo trust).
+      placeholder: "Drag & drop screenshot/GIF here after implementation."
+    validations:
+      required: false

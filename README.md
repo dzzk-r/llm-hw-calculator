@@ -45,3 +45,14 @@ npm run preview
 This is a static Vite build. Most hosts use:
 - Build command: `npm run build`
 - Publish directory: `dist`
+
+# v0.3-alpha
+
+Constraint-Aware Edge Inference Modeling Framework.
+
+Core thesis:
+> TOPS != tok/s
+
+v0.3 introduces structured constraint modeling across three UI layers.
+
+See docs/ for architectural alignment and competitive context.

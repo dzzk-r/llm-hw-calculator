@@ -36,6 +36,8 @@ import Modal from "./components/Modal.jsx";
 import ProfileManager from "./components/ProfileManager";
 import SidePanel from "./components/SidePanel.jsx";
 import SidePanelDock from "./components/SidePanelDock.jsx";
+import TierBlock from "./components/TierBlock.jsx";
+
 
 function fmt(n, digits=2) {
   return Number(n).toFixed(digits);
@@ -457,6 +459,9 @@ export default function App() {
     setKvExtraOverheadPct(e.kvExtraOverheadPct);
   }
 
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+
   return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
         <div className="flex">
@@ -509,7 +514,61 @@ export default function App() {
                   />
                 </div>
               </div>
+              {/**/}
+              <div className="grid gap-4">
+                <TierBlock
+                    tone="green"
+                    title="🟢 GREEN — Core inputs (operator-friendly)"
+                    subtitle="Baseline controls. Keep stable. v0.3-alpha: layout only."
+                    right={<span className="text-xs text-zinc-500">release-date: TBD (see TODO.md)</span>}
+                >
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* сюда: Card Model, Card Context controls, Card Hardware+performance */}
+                  </div>
+                </TierBlock>
 
+                <TierBlock
+                    tone="yellow"
+                    title="🟡 YELLOW — Practical realism (systems-friendly)"
+                    subtitle="Engine presets, KV realism knobs, overheads. Explains why TOPS≠tok/s."
+                    right={<span className="text-xs text-zinc-500">release-date: TBD</span>}
+                >
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* сюда: Card Precision & overheads, Card Edge-AI sane defaults */}
+                  </div>
+                </TierBlock>
+
+                <TierBlock
+                    tone="blue"
+                    title="🔵 BLUE — Advanced / Strategic layer (VP-friendly narrative)"
+                    subtitle="Brand-masked accelerators, encoder/surveillance framing, competitive comparison (R-track)."
+                    right={<span className="text-xs text-zinc-500">release-date: TBD</span>}
+                >
+                  {/* сюда: collapsible runtime amplification layer + ссылки на docs */}
+                  <div className="rounded-xl border border-zinc-800 bg-zinc-950">
+                    <button
+                        type="button"
+                        onClick={() => setAdvancedOpen(v => !v)}
+                        className="w-full flex items-center justify-between px-3 py-2"
+                    >
+                      <div className="text-sm text-zinc-200 font-semibold">
+                        Runtime amplification layer
+                        <span className="ml-2 text-xs text-zinc-500">Deep & optional → Systems engineer friendly</span>
+                      </div>
+                      <div className="text-xs text-zinc-400">{advancedOpen ? "Hide ▲" : "Show ▼"}</div>
+                    </button>
+
+                    {advancedOpen ? (
+                        <div className="px-3 pb-3 text-xs text-zinc-400 space-y-2">
+                          <div>• “TOPS ≠ tok/s”: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.</div>
+                          <div>• Add masked accelerators presets: h8m2 / h10hm2 / nvo / nvj + R-track.</div>
+                          <div>• Encoder narrative: what it accelerates (vision encoder ≠ STT encoder).</div>
+                        </div>
+                    ) : null}
+                  </div>
+                </TierBlock>
+              </div>
+              {/**/}
               <div className="grid md:grid-cols-2 gap-4">
                 <Card title="Edge-AI “sane defaults”">
                   <div className="text-xs text-zinc-400 mb-2">
@@ -531,7 +590,7 @@ export default function App() {
                           setUtilization(2);
                         }}
                     >
-                      <div className="text-sm text-zinc-200">Edge Lite (7B, 4k, 16GiB)</div>
+                    <div className="text-sm text-zinc-200">Edge Lite (7B, 4k, 16GiB)</div>
                       <div className="text-xs text-zinc-500">Plausible 20+ tok/s with good runtime (depends on accel).
                       </div>
                     </button>
@@ -935,12 +994,12 @@ export default function App() {
                 </table>
               </div>
             </Card>
-<br/>
+            <br/>
             <Card>
               <div className="flex items-center justify-between gap-2 mt-2">
                 <div className="text-sm font-semibold">Verdict</div>
               </div>
-                <Badge tone={computed.status.tone}>{computed.status.text}</Badge>
+              <Badge tone={computed.status.tone}>{computed.status.text}</Badge>
 
               <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                 <div className="text-zinc-400">Weights</div>
@@ -981,13 +1040,13 @@ export default function App() {
             </Card>
           </SidePanelDock>
         </div>
-            <Modal
-                open={badgeModal.open}
-                title={BADGE_INFO[badgeModal.key]?.title ?? "Info"}
-                onClose={() => setBadgeModal({open: false, key: null})}
-            >
-              {BADGE_INFO[badgeModal.key]?.body ?? null}
-            </Modal>
+        <Modal
+            open={badgeModal.open}
+            title={BADGE_INFO[badgeModal.key]?.title ?? "Info"}
+            onClose={() => setBadgeModal({open: false, key: null})}
+        >
+          {BADGE_INFO[badgeModal.key]?.body ?? null}
+        </Modal>
       </div>
-      );
-    }
+  );
+}

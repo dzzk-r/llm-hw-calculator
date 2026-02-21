@@ -1,0 +1,19 @@
+#
+blank_issues_enabled: true
+
+contact_links:
+  - name: Readme / Quick Start
+    url: https://github.com/dzzk-r/llm-hw-calculator
+    about: Project overview, local run, and usage notes.
+
+  - name: Roadmap (TODO.md)
+    url: https://github.com/dzzk-r/llm-hw-calculator/blob/main/TODO.md
+    about: Current plan for v0.3-alpha and beyond (G/Y/B).
+
+  - name: Architectural context (LM_Context)
+    url: https://github.com/dzzk-r/llm-hw-calculator/tree/main/docs
+    about: Internal context & traceability docs (vendor-neutral).
+
+  - name: Bug report checklist
+    url: https://github.com/dzzk-r/llm-hw-calculator/issues/new
+    about: If you file a bug, include browser, steps, expected vs actual, and a screenshot.
