@@ -543,9 +543,127 @@ export default function App() {
 
                       {/* На следующем шаге ты сюда перенесёшь реальный Card "Context controls" */}
                       {/* <Card title="Context controls (the KV bomb)">...</Card> */}
+                      <Card title="Context controls (the KV bomb)">
+                        <div className="grid grid-cols-2 gap-3">
+                          <Select
+                              label="Context length"
+                              value={String(context)}
+                              onChange={(v) => setContext(Number(v))}
+                              options={DEFAULT_CONTEXT_OPTIONS.map(c => ({value: String(c), label: String(c)}))}
+                          />
+                          <Input label="Custom context" value={context} onChange={setContext} min={256} step={256}/>
+                        </div>
+
+                        <div className="mt-4 space-y-3">
+                          <Toggle
+                              label="Sliding window enabled"
+                              checked={slidingWindowEnabled}
+                              onChange={setSlidingWindowEnabled}
+                              hint="Caps KV tokens to a window; makes '128k prompt' feasible without 128k KV."
+                          />
+                          <Input
+                              label="Sliding window size (tokens)"
+                              value={slidingWindow}
+                              onChange={setSlidingWindow}
+                              min={512}
+                              step={256}
+                          />
+                        </div>
+
+                        <div className="mt-3 text-xs text-zinc-500">
+                          Effective KV tokens: <span className="text-zinc-200 font-semibold">{computed.kvTokensEff}</span>
+                        </div>
+                      </Card>
 
                       {/* На следующем шаге ты сюда перенесёшь реальный Card "Hardware + performance" */}
                       {/* <Card title="Hardware + performance">...</Card> */}
+                      <Card
+                          title="Hardware + performance"
+                          right={<button onClick={saveCurrentProfile}
+                          className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
+                          type="button">Save profile</button>}
+                      >
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input label="RAM available (GiB)" value={ramGiB} onChange={setRamGiB} min={1} step={1}/>
+                          <Input label="TOPS (peak @ chosen accel dtype)" value={tops} onChange={setTops} min={0} step={1}/>
+                        </div>
+
+                        <div className="mt-4 space-y-3">
+                          <Slider
+                              label="LLM utilization (compute)"
+                              value={utilization}
+                              onChange={setUtilization}
+                              min={0.2}
+                              max={20}
+                              step={0.1}
+                              suffix="%"
+                          />
+                          <Select
+                              label="Memory bandwidth preset"
+                              value={bandwidthPreset}
+                              onChange={(v) => {
+                                setBandwidthPreset(v);
+                              }}
+                              options={HARDWARE_PRESETS.map(h => ({value: h.id, label: h.label}))}
+                          />
+                          {bandwidthPreset === "manual" ? (
+                              <Input label="Bandwidth (GB/s)" value={bandwidthGBsManual}
+                                     onChange={setBandwidthGBsManual}
+                                     min={1}
+                                     step={1}/>
+                          ) : (
+                              <div className="text-xs text-zinc-500">Using preset: <span
+                                  className="text-zinc-300">{bandwidthGBs} GB/s peak</span> (sustained lower).</div>
+                          )}
+
+                          <SectionTitle>Bandwidth sanity knobs (pessimistic)</SectionTitle>
+                          <div className="grid grid-cols-2 gap-3">
+                            <Slider label="Attn read factor" value={attnReadFactor} onChange={setAttnReadFactor}
+                                    min={0.2}
+                                    max={2.0}
+                                    step={0.1}/>
+                            <Slider label="Weights read factor" value={weightsReadFactor}
+                                    onChange={setWeightsReadFactor}
+                                    min={0.2}
+                                    max={2.0} step={0.1}/>
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-zinc-500 mb-2 mt-8">
+                          Stored in <span className="text-zinc-300">localStorage</span>. No backend.
+                        </div>
+                        {profiles.length === 0 ? (
+                            <div className="text-sm text-zinc-400">No profiles yet. Click “Save profile”.</div>
+                        ) : (
+                            <div className="space-y-2">
+                              {profiles.map((p) => (
+                                  <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div>
+                                        <div className="text-sm text-zinc-200 font-semibold">{p.name}</div>
+                                        <div className="text-xs text-zinc-500 mt-1">
+                                          RAM: <span className="text-zinc-300">{p.ramGiB} GiB</span> · BW: <span
+                                            className="text-zinc-300">{p.bandwidthGBs} GB/s</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button
+                                            className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
+                                            type="button" onClick={() => applyProfile(p)}>
+                                          Apply
+                                        </button>
+                                        <button
+                                            className="text-xs px-2 py-1 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                                            type="button" onClick={() => deleteProfile(p.id)}>
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                              ))}
+                            </div>
+                        )}
+                      </Card>
                     </div>
 
                     {/* RIGHT: planned */}
@@ -772,91 +890,6 @@ export default function App() {
                   </div>
                 </Card>
 
-                <Card
-                    title="Hardware + performance"
-                    right={<button onClick={saveCurrentProfile}
-                                   className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
-                                   type="button">Save profile</button>}
-                >
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input label="RAM available (GiB)" value={ramGiB} onChange={setRamGiB} min={1} step={1}/>
-                    <Input label="TOPS (peak @ chosen accel dtype)" value={tops} onChange={setTops} min={0} step={1}/>
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <Slider
-                        label="LLM utilization (compute)"
-                        value={utilization}
-                        onChange={setUtilization}
-                        min={0.2}
-                        max={20}
-                        step={0.1}
-                        suffix="%"
-                    />
-                    <Select
-                        label="Memory bandwidth preset"
-                        value={bandwidthPreset}
-                        onChange={(v) => {
-                          setBandwidthPreset(v);
-                        }}
-                        options={HARDWARE_PRESETS.map(h => ({value: h.id, label: h.label}))}
-                    />
-                    {bandwidthPreset === "manual" ? (
-                        <Input label="Bandwidth (GB/s)" value={bandwidthGBsManual} onChange={setBandwidthGBsManual}
-                               min={1}
-                               step={1}/>
-                    ) : (
-                        <div className="text-xs text-zinc-500">Using preset: <span
-                            className="text-zinc-300">{bandwidthGBs} GB/s peak</span> (sustained lower).</div>
-                    )}
-
-                    <SectionTitle>Bandwidth sanity knobs (pessimistic)</SectionTitle>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Slider label="Attn read factor" value={attnReadFactor} onChange={setAttnReadFactor} min={0.2}
-                              max={2.0}
-                              step={0.1}/>
-                      <Slider label="Weights read factor" value={weightsReadFactor} onChange={setWeightsReadFactor}
-                              min={0.2}
-                              max={2.0} step={0.1}/>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-zinc-500 mb-2 mt-8">
-                    Stored in <span className="text-zinc-300">localStorage</span>. No backend.
-                  </div>
-                  {profiles.length === 0 ? (
-                      <div className="text-sm text-zinc-400">No profiles yet. Click “Save profile”.</div>
-                  ) : (
-                      <div className="space-y-2">
-                        {profiles.map((p) => (
-                            <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="text-sm text-zinc-200 font-semibold">{p.name}</div>
-                                  <div className="text-xs text-zinc-500 mt-1">
-                                    RAM: <span className="text-zinc-300">{p.ramGiB} GiB</span> · BW: <span
-                                      className="text-zinc-300">{p.bandwidthGBs} GB/s</span>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                      className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
-                                      type="button" onClick={() => applyProfile(p)}>
-                                    Apply
-                                  </button>
-                                  <button
-                                      className="text-xs px-2 py-1 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-200"
-                                      type="button" onClick={() => deleteProfile(p.id)}>
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                  )}
-                </Card>
-
                 <Card title="Precision & overheads">
                   <div className="grid grid-cols-2 gap-3">
                     <Select
@@ -972,38 +1005,6 @@ export default function App() {
                   </div>
                 </Card>
 
-
-                <Card title="Context controls (the KV bomb)">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Select
-                        label="Context length"
-                        value={String(context)}
-                        onChange={(v) => setContext(Number(v))}
-                        options={DEFAULT_CONTEXT_OPTIONS.map(c => ({value: String(c), label: String(c)}))}
-                    />
-                    <Input label="Custom context" value={context} onChange={setContext} min={256} step={256}/>
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <Toggle
-                        label="Sliding window enabled"
-                        checked={slidingWindowEnabled}
-                        onChange={setSlidingWindowEnabled}
-                        hint="Caps KV tokens to a window; makes '128k prompt' feasible without 128k KV."
-                    />
-                    <Input
-                        label="Sliding window size (tokens)"
-                        value={slidingWindow}
-                        onChange={setSlidingWindow}
-                        min={512}
-                        step={256}
-                    />
-                  </div>
-
-                  <div className="mt-3 text-xs text-zinc-500">
-                    Effective KV tokens: <span className="text-zinc-200 font-semibold">{computed.kvTokensEff}</span>
-                  </div>
-                </Card>
               </div>
 
               {/*
