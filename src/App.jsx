@@ -713,6 +713,197 @@ export default function App() {
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* сюда: Card Precision & overheads, Card Edge-AI sane defaults */}
                     <div className="grid gap-2">
+
+                      <div className="grid gap-2">
+                        <Card title="Edge-AI “sane defaults”">
+                          <div className="text-xs text-zinc-400 mb-2">
+                            One-click configurations that match real edge constraints.
+                          </div>
+                          <div className="grid gap-2">
+                            <button
+                                className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
+                                type="button"
+                                onClick={() => {
+                                  applyModelPreset("7b");
+                                  setWeightDtype("int4");
+                                  setKvDtype("fp16");
+                                  setContext(4096);
+                                  setSlidingWindowEnabled(false);
+                                  setRamGiB(16);
+                                  setBandwidthPreset("lpddr5x-8533");
+                                  setTops(26);
+                                  setUtilization(2);
+                                }}
+                            >
+                              <div className="text-sm text-zinc-200">Edge Lite (7B, 4k, 16GiB)</div>
+                              <div className="text-xs text-zinc-500">Plausible 20+ tok/s with good runtime (depends on
+                                accel).
+                              </div>
+                            </button>
+
+                            <button
+                                className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
+                                type="button"
+                                onClick={() => {
+                                  applyModelPreset("10b");
+                                  setWeightDtype("int4");
+                                  setKvDtype("fp16");
+                                  setContext(8192);
+                                  setSlidingWindowEnabled(false);
+                                  setRamGiB(32);
+                                  setBandwidthPreset("ddr5-5600-2ch");
+                                  setTops(26);
+                                  setUtilization(2);
+                                }}
+                            >
+                              <div className="text-sm text-zinc-200">Edge Pro (10B, 8k, 32GiB DDR5)</div>
+                              <div className="text-xs text-zinc-500">KV math regime; shows where DDR4 starts choking.
+                              </div>
+                            </button>
+
+                            <button
+                                className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
+                                type="button"
+                                onClick={() => {
+                                  applyModelPreset("30b");
+                                  setWeightDtype("int4");
+                                  setKvDtype("int8");
+                                  setContext(128000);
+                                  setSlidingWindowEnabled(true);
+                                  setSlidingWindow(8192);
+                                  setRamGiB(64);
+                                  setBandwidthPreset("ddr5-5600-2ch");
+                                  setTops(60);
+                                  setUtilization(3);
+                                  // Approximate: set kvHeads smaller than heads (GQA-ish)
+                                  setKvHeads(Math.max(8, Math.floor(heads / 4)));
+                                }}
+                            >
+                              <div className="text-sm text-zinc-200">“128k prompt” reality check (30B, sliding 8k, INT8
+                                KV)
+                              </div>
+                              <div className="text-xs text-zinc-500">How “128k+” is marketed without 200GB KV.</div>
+                            </button>
+                          </div>
+                        </Card>
+
+                        <Card title="Precision & overheads">
+                          <div className="grid grid-cols-2 gap-3">
+                            <Select
+                                label="Weights dtype"
+                                value={weightDtype}
+                                onChange={setWeightDtype}
+                                options={Object.keys(WEIGHT_DTYPE_BYTES).map(k => ({value: k, label: k}))}
+                            />
+                            <Select
+                                label="KV dtype"
+                                value={kvDtype}
+                                onChange={setKvDtype}
+                                options={Object.keys(KV_DTYPE_BYTES).map(k => ({value: k, label: k}))}
+                            />
+                          </div>
+
+                          <div className="mt-4 space-y-3">
+                            <Select
+                                label="Engine realism preset"
+                                value={enginePresetId}
+                                onChange={applyEnginePreset}
+                                options={ENGINE_PRESETS.map(e => ({
+                                  value: e.id,
+                                  label: `${e.label} — ${e.desc}`,
+                                }))}
+                            />
+
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {ENGINE_PRESETS.slice(0, 4).map(e => (
+                                  <button
+                                      key={e.id}
+                                      type="button"
+                                      onClick={() => applyEnginePreset(e.id)}
+                                      className={`text-xs px-2 py-1 rounded-lg border ${
+                                          enginePresetId === e.id
+                                              ? "border-zinc-400"
+                                              : "border-zinc-800 hover:border-zinc-600"
+                                      }`}
+                                      title={e.desc}
+                                  >
+                                    {e.label}
+                                  </button>
+                              ))}
+                            </div>
+
+                            <Select
+                                label="KV storage scheme"
+                                value={kvSchemeId}
+                                onChange={setKvSchemeId}
+                                options={KV_QUANT_SCHEMES.map(s => ({value: s.id, label: s.label}))}
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input
+                                  label="KV group size"
+                                  value={kvGroupSize}
+                                  onChange={setKvGroupSize}
+                                  min={16}
+                                  step={16}
+                              />
+                              <Input
+                                  label="KV alignment (bytes)"
+                                  value={kvAlignment}
+                                  onChange={setKvAlignment}
+                                  min={64}
+                                  step={64}
+                              />
+                            </div>
+
+                            <Slider
+                                label="KV runtime copies/fragmentation"
+                                value={kvCopiesFactorPct}
+                                onChange={setKvCopiesFactorPct}
+                                min={0}
+                                max={80}
+                                step={1}
+                                suffix="%"
+                            />
+
+                            <Slider
+                                label="KV extra overhead (paged headers/workspace)"
+                                value={kvExtraOverheadPct}
+                                onChange={setKvExtraOverheadPct}
+                                min={0}
+                                max={50}
+                                step={1}
+                                suffix="%"
+                            />
+                          </div>
+
+                          <div className="mt-4 space-y-3">
+                            <Slider
+                                label="Quant metadata overhead"
+                                value={quantOverheadPct}
+                                onChange={setQuantOverheadPct}
+                                min={0}
+                                max={50}
+                                step={1}
+                                suffix="%"
+                            />
+                            <Slider
+                                label="Runtime overhead (framework, buffers)"
+                                value={runtimeOverheadGiB}
+                                onChange={setRuntimeOverheadGiB}
+                                min={0}
+                                max={8}
+                                step={0.1}
+                                suffix=" GiB"
+                            />
+                          </div>
+
+                          <div className="mt-3 text-xs text-zinc-500">
+                            INT4 weights are “minimum”; real engines add scales/zeros + workspace.
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
                       <PlannedCard
                           title="Prefill vs Decode (planned)"
                           desc="Split throughput modeling for prompt ingest vs token decode."
@@ -729,7 +920,7 @@ export default function App() {
                   </div>
                 </TierBlock>
 
-                  {/* сюда: collapsible runtime amplification layer + ссылки на docs */}
+                {/* сюда: collapsible runtime amplification layer + ссылки на docs */}
 
                 <TierBlock
                     tone="blue"
@@ -812,7 +1003,8 @@ export default function App() {
                       </div>
 
                       <div className="mt-2 text-zinc-500">
-                        If you prefer local docs, move them into <span className="text-zinc-300">public/docs</span> and link as
+                        If you prefer local docs, move them into <span className="text-zinc-300">public/docs</span> and
+                        link as
                         <span className="text-zinc-300"> /docs/…</span>.
                       </div>
                     </div>
@@ -820,192 +1012,6 @@ export default function App() {
                 </TierBlock>
               </div>
               {/**/}
-              <div className="grid md:grid-cols-2 gap-4">
-                <Card title="Edge-AI “sane defaults”">
-                  <div className="text-xs text-zinc-400 mb-2">
-                    One-click configurations that match real edge constraints.
-                  </div>
-                  <div className="grid gap-2">
-                    <button
-                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
-                        type="button"
-                        onClick={() => {
-                          applyModelPreset("7b");
-                          setWeightDtype("int4");
-                          setKvDtype("fp16");
-                          setContext(4096);
-                          setSlidingWindowEnabled(false);
-                          setRamGiB(16);
-                          setBandwidthPreset("lpddr5x-8533");
-                          setTops(26);
-                          setUtilization(2);
-                        }}
-                    >
-                    <div className="text-sm text-zinc-200">Edge Lite (7B, 4k, 16GiB)</div>
-                      <div className="text-xs text-zinc-500">Plausible 20+ tok/s with good runtime (depends on accel).
-                      </div>
-                    </button>
-
-                    <button
-                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
-                        type="button"
-                        onClick={() => {
-                          applyModelPreset("10b");
-                          setWeightDtype("int4");
-                          setKvDtype("fp16");
-                          setContext(8192);
-                          setSlidingWindowEnabled(false);
-                          setRamGiB(32);
-                          setBandwidthPreset("ddr5-5600-2ch");
-                          setTops(26);
-                          setUtilization(2);
-                        }}
-                    >
-                      <div className="text-sm text-zinc-200">Edge Pro (10B, 8k, 32GiB DDR5)</div>
-                      <div className="text-xs text-zinc-500">KV math regime; shows where DDR4 starts choking.</div>
-                    </button>
-
-                    <button
-                        className="text-left rounded-xl border border-zinc-800 hover:border-zinc-600 bg-zinc-950 px-3 py-2"
-                        type="button"
-                        onClick={() => {
-                          applyModelPreset("30b");
-                          setWeightDtype("int4");
-                          setKvDtype("int8");
-                          setContext(128000);
-                          setSlidingWindowEnabled(true);
-                          setSlidingWindow(8192);
-                          setRamGiB(64);
-                          setBandwidthPreset("ddr5-5600-2ch");
-                          setTops(60);
-                          setUtilization(3);
-                          // Approximate: set kvHeads smaller than heads (GQA-ish)
-                          setKvHeads(Math.max(8, Math.floor(heads / 4)));
-                        }}
-                    >
-                      <div className="text-sm text-zinc-200">“128k prompt” reality check (30B, sliding 8k, INT8 KV)
-                      </div>
-                      <div className="text-xs text-zinc-500">How “128k+” is marketed without 200GB KV.</div>
-                    </button>
-                  </div>
-                </Card>
-
-                <Card title="Precision & overheads">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Select
-                        label="Weights dtype"
-                        value={weightDtype}
-                        onChange={setWeightDtype}
-                        options={Object.keys(WEIGHT_DTYPE_BYTES).map(k => ({value: k, label: k}))}
-                    />
-                    <Select
-                        label="KV dtype"
-                        value={kvDtype}
-                        onChange={setKvDtype}
-                        options={Object.keys(KV_DTYPE_BYTES).map(k => ({value: k, label: k}))}
-                    />
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <Select
-                        label="Engine realism preset"
-                        value={enginePresetId}
-                        onChange={applyEnginePreset}
-                        options={ENGINE_PRESETS.map(e => ({
-                          value: e.id,
-                          label: `${e.label} — ${e.desc}`,
-                        }))}
-                    />
-
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {ENGINE_PRESETS.slice(0, 4).map(e => (
-                          <button
-                              key={e.id}
-                              type="button"
-                              onClick={() => applyEnginePreset(e.id)}
-                              className={`text-xs px-2 py-1 rounded-lg border ${
-                                  enginePresetId === e.id
-                                      ? "border-zinc-400"
-                                      : "border-zinc-800 hover:border-zinc-600"
-                              }`}
-                              title={e.desc}
-                          >
-                            {e.label}
-                          </button>
-                      ))}
-                    </div>
-
-                    <Select
-                        label="KV storage scheme"
-                        value={kvSchemeId}
-                        onChange={setKvSchemeId}
-                        options={KV_QUANT_SCHEMES.map(s => ({value: s.id, label: s.label}))}
-                    />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                          label="KV group size"
-                          value={kvGroupSize}
-                          onChange={setKvGroupSize}
-                          min={16}
-                          step={16}
-                      />
-                      <Input
-                          label="KV alignment (bytes)"
-                          value={kvAlignment}
-                          onChange={setKvAlignment}
-                          min={64}
-                          step={64}
-                      />
-                    </div>
-
-                    <Slider
-                        label="KV runtime copies/fragmentation"
-                        value={kvCopiesFactorPct}
-                        onChange={setKvCopiesFactorPct}
-                        min={0}
-                        max={80}
-                        step={1}
-                        suffix="%"
-                    />
-
-                    <Slider
-                        label="KV extra overhead (paged headers/workspace)"
-                        value={kvExtraOverheadPct}
-                        onChange={setKvExtraOverheadPct}
-                        min={0}
-                        max={50}
-                        step={1}
-                        suffix="%"
-                    />
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <Slider
-                        label="Quant metadata overhead"
-                        value={quantOverheadPct}
-                        onChange={setQuantOverheadPct}
-                        min={0}
-                        max={50}
-                        step={1}
-                        suffix="%"
-                    />
-                    <Slider
-                        label="Runtime overhead (framework, buffers)"
-                        value={runtimeOverheadGiB}
-                        onChange={setRuntimeOverheadGiB}
-                        min={0}
-                        max={8}
-                        step={0.1}
-                        suffix=" GiB"
-                    />
-                  </div>
-
-                  <div className="mt-3 text-xs text-zinc-500">
-                    INT4 weights are “minimum”; real engines add scales/zeros + workspace.
-                  </div>
-                </Card>
-
-              </div>
 
               {/*
               <div className="grid md:grid-cols-2 gap-4 mt-4">
