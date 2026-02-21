@@ -461,6 +461,20 @@ export default function App() {
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
+  function PlannedCard({ title, desc, releaseDate = "TBD" }) {
+    return (
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-sm text-zinc-200 font-semibold">{title}</div>
+              {desc ? <div className="text-xs text-zinc-500 mt-1">{desc}</div> : null}
+            </div>
+            <div className="text-xs text-zinc-500 shrink-0">release-date: {releaseDate}</div>
+          </div>
+          <div className="mt-2 text-xs text-zinc-600 italic">planned (placeholder)</div>
+        </div>
+    );
+  }
 
   return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -515,7 +529,7 @@ export default function App() {
                 </div>
               </div>
               {/**/}
-              <div className="grid gap-4">
+              <div className="grid gap-4 pb-2 mb-4">
                 <TierBlock
                     tone="green"
                     title="🟢 GREEN — Core inputs (operator-friendly)"
@@ -524,6 +538,32 @@ export default function App() {
                 >
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* сюда: Card Model, Card Context controls, Card Hardware+performance */}
+                    <PlannedCard
+                        title="Prefill vs Decode (planned)"
+                        bullets={[
+                          "Separate prompt loading (prefill) from token generation (decode).",
+                          "Expose why decode is KV/bandwidth/scheduler bound even when TOPS looks high.",
+                        ]}
+                        docHint="See TODO.md → v0.3-alpha: Core Architecture & Logic"
+                    />
+
+                    <PlannedCard
+                        title="Regime Classifier (planned)"
+                        bullets={[
+                          "Badge: Compute-bound / Bandwidth-bound / KV-bound / SRAM-spill.",
+                          "Keeps “TOPS ≠ tok/s” visible in UI via bottleneck attribution.",
+                        ]}
+                        docHint="See TODO.md → Regime Classifier"
+                    />
+
+                    <PlannedCard
+                        title="Encoder Workload Mode (planned)"
+                        bullets={[
+                          "Workload selector: LLM / Encoder / Hybrid.",
+                          "Encoder mode: no KV growth; focuses on throughput + memory fit.",
+                        ]}
+                        docHint="See TODO.md → Encoder Workload Mode"
+                    />
                   </div>
                 </TierBlock>
 
@@ -535,6 +575,20 @@ export default function App() {
                 >
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* сюда: Card Precision & overheads, Card Edge-AI sane defaults */}
+                    <div className="grid gap-2">
+                      <PlannedCard
+                          title="Prefill vs Decode (planned)"
+                          desc="Split throughput modeling for prompt ingest vs token decode."
+                      />
+                      <PlannedCard
+                          title="Regime Classifier (planned)"
+                          desc="Compute-bound / BW-bound / KV-bound / SRAM-spill badge + explanation."
+                      />
+                      <PlannedCard
+                          title="Encoder Workload Mode (planned)"
+                          desc="LLM / Encoder / Hybrid workload selector (KV growth differs)."
+                      />
+                    </div>
                   </div>
                 </TierBlock>
 
@@ -543,6 +597,8 @@ export default function App() {
                     title="🔵 BLUE — Advanced / Strategic layer (VP-friendly narrative)"
                     subtitle="Brand-masked accelerators, encoder/surveillance framing, competitive comparison (R-track)."
                     right={<span className="text-xs text-zinc-500">release-date: TBD</span>}
+                    collapsible
+                    defaultCollapsed={true}
                 >
                   {/* сюда: collapsible runtime amplification layer + ссылки на docs */}
                   <div className="rounded-xl border border-zinc-800 bg-zinc-950">
@@ -553,16 +609,26 @@ export default function App() {
                     >
                       <div className="text-sm text-zinc-200 font-semibold">
                         Runtime amplification layer
-                        <span className="ml-2 text-xs text-zinc-500">Deep & optional → Systems engineer friendly</span>
+                        <span className="ml-2 text-xs text-zinc-500">Deep & optional › Systems engineer friendly</span>
                       </div>
                       <div className="text-xs text-zinc-400">{advancedOpen ? "Hide ▲" : "Show ▼"}</div>
                     </button>
 
                     {advancedOpen ? (
                         <div className="px-3 pb-3 text-xs text-zinc-400 space-y-2">
-                          <div>• “TOPS ≠ tok/s”: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.</div>
+                          <div>• “TOPS != tok/s”: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.
+                          </div>
                           <div>• Add masked accelerators presets: h8m2 / h10hm2 / nvo / nvj + R-track.</div>
                           <div>• Encoder narrative: what it accelerates (vision encoder ≠ STT encoder).</div>
+                          <div className="pt-2 text-zinc-500">
+                            Docs:
+                            <a className="ml-2 underline hover:text-zinc-300"
+                               href="/docs/Runtime_Amplification_Layer.md">Runtime
+                              Amplification</a>
+                            <a className="ml-2 underline hover:text-zinc-300" href="/docs/LM_Context.md">LM Context</a>
+                            <a className="ml-2 underline hover:text-zinc-300" href="/docs/Competitive_Context.md">Competitive
+                              Context</a>
+                          </div>
                         </div>
                     ) : null}
                   </div>
