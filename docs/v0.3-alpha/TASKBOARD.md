@@ -15,25 +15,25 @@
 
 ---
 
-## 🟩 GREEN — Core Inputs (Operator Layer)
-- [DONE] 🟩🟢 Regime badge (compute/bandwidth/KV heuristic) — ~3h
-- [TODO] 🟩🟠 Scaling chart toggles (Total/KV/Caps) + dual-axis cleanup — ~8h
+## 🟩 GREEN – Core Inputs (Operator Layer)
+- [DONE] 🟩 🟢 Regime badge (compute/bandwidth/KV heuristic) – ~3h
+- [TODO] 🟩 🟠 Scaling chart toggles (Total/KV/Caps) + dual-axis cleanup – ~8h
   - Links: `src/App.jsx` (SidePanelDock), `src/components/Toggle.jsx`
   - Constraint themes: KV growth visibility, bottleneck attribution
 
-- [TODO] 🟩🟢 Prefill vs Decode UI stub (layout + tooltip text; no new math) — ~3h
+- [TODO] 🟩 🟢 Prefill vs Decode UI stub (layout + tooltip text; no new math) – ~3h
   - Constraint themes: decode ≠ prefill framing
 
-## 🟨 YELLOW — Practical Realism (Systems Layer)
-- [DONE] 🟨🟢 Engine realism presets grouped into YELLOW (layout-only)
-- [TODO] 🟨🟢 KV realism grouping (alignment/copies/overheads) + short help text — ~4h
+## 🟨 YELLOW – Practical Realism (Systems Layer)
+- [DONE] 🟨 🟢 Engine realism presets grouped into YELLOW (layout-only)
+- [TODO] 🟨 🟢 KV realism grouping (alignment/copies/overheads) + short help text – ~4h
   - Links: `src/lib/math.js`, `docs/Edge_Architectural_Constraints.md`
 
-## 🟦 BLUE — Advanced / Optional
-- [TODO] 🟦🟢 Runtime amplification explanation panel (short, collapsible) — ~3h
+## 🟦 BLUE – Advanced / Optional
+- [TODO] 🟦 🟢 Runtime amplification explanation panel (short, collapsible) – ~3h
   - Links: `docs/Runtime_Amplification_Layer.md`
 
-- [TODO] 🟦🟢 Competitive context panel (masked presets, memory topology notes) — ~4h
+- [TODO] 🟦 🟢 Competitive context panel (masked presets, memory topology notes) – ~4h
   - Links: `docs/Competitive_Context.md`
 
 ---

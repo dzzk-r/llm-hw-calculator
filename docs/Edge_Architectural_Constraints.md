@@ -63,7 +63,7 @@ Silicon vendors often provide hardware + SDK, while large-scale device managemen
 (rollouts, telemetry aggregation, fleet policy) is implemented by customers.
 
 **Scope implication:** keep this repo focused on **on-device feasibility + constraints**.
-Do not drift into fleet orchestration — but keep doc hooks for future integrations.
+Do not drift into fleet orchestration – but keep doc hooks for future integrations.
 
 ---
 

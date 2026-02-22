@@ -1,89 +1,84 @@
-[//]: # (docs/ALPHA_SCOPE.md)
+[//]: # (docs/v0.3-alpha/SCOPE.md)
 
-# v0.3-alpha Scope Definition
+# v0.3-alpha Scope
 
-This document defines the formal boundaries of v0.3-alpha.
+v0.3-alpha is a structural release.
 
-The purpose of this release is architectural constraint modeling —
-not feature completeness.
+Its purpose is to establish a clean, constraint-first UI and documentation baseline.
+It does not aim to expand modeling depth beyond existing logic.
 
 ---
 
 ## 1. Objectives
 
-v0.3-alpha establishes:
+v0.3-alpha must establish:
 
-- G/Y/B UI layering (Operator / System / Runtime)
+- Clear G/Y/B UI layering (Operator / System / Runtime)
 - KV-aware context scaling visualization
 - Dual-axis memory vs throughput chart
-- Bottleneck regime classification (heuristic)
-- Vendor-neutral modeling
+- Reactive bottleneck regime classification (heuristic)
+- Vendor-neutral public documentation
 
-It does NOT implement:
-- SRAM fit modeling
-- Prefill vs decode separation
-- Encoder workload mode
-- Deterministic latency enforcement
-- Runtime amplification modeling
-
-Those belong to later stages.
+This release focuses on structure, clarity, and constraint visibility.
 
 ---
 
-## 2. Delivered Components
+## 2. In-Scope Features
 
-### GREEN — Operator Layer
+### GREEN – Operator Layer
 - Model controls
 - Context controls (KV-aware)
 - Hardware + performance inputs
 - RegimeBadge (compute / bandwidth / KV heuristic)
-- Dual-axis scaling chart
+- Dual-axis scaling chart with working toggles
 
-### YELLOW — System Realism Layer
-- Precision & overhead controls
-- Engine realism presets
+### YELLOW – System Realism Layer
+- Precision & overhead controls grouped
+- Engine realism presets grouped
+- Minimal explanatory text (1–3 bullets per group)
 
-### BLUE — Runtime Layer (structural only)
-- Placeholder container
-- No amplification modeling yet
-
----
-
-## 3. Acceptance Criteria
-
-v0.3-alpha is considered complete when:
-
-- Context scaling affects KV footprint deterministically
-- tok/s reflects compute vs bandwidth caps
-- Regime classification updates reactively
-- Chart toggles behave correctly
-- Public documentation aligns with architectural intent
+### BLUE – Runtime Layer
+- Structural container only
+- Collapsible
+- No amplification math implemented
 
 ---
 
-## 4. Non-Goals
+## 3. Acceptance Criteria (Definition of Done)
 
-The following are explicitly excluded from alpha:
+v0.3-alpha is complete when:
 
-- Power modeling
-- Thermal scaling
-- SRAM spill penalties
+1. Context scaling visibly affects KV footprint.
+2. tok/s visibly reflects compute vs bandwidth caps.
+3. Regime classification updates reactively.
+4. Chart toggles correctly show/hide:
+    - Total vs KV-only memory
+    - Compute/Bandwidth caps
+5. PlannedCards are capped (≤ 3 per tier).
+6. Public docs are vendor-neutral and internally consistent.
+
+---
+
+## 4. Explicit Non-Goals
+
+The following are excluded from alpha:
+
+- Prefill vs decode stage separation (math-level)
+- Encoder workload mode
+- Deterministic latency enforcement
+- SRAM fit modeling
+- Spill penalties
+- Power or thermal scaling
 - Multi-stream contention modeling
 - Runtime scheduler coefficients
 
-These are tracked in TODO.md.
+These belong to beta and beyond.
 
 ---
 
-## 5. Rationale
+## 5. Exit Rule
 
-The goal of v0.3-alpha is to demonstrate:
+Once all acceptance criteria are satisfied,
+v0.3-alpha is frozen and tagged.
 
-- Constraint-aware inference modeling
-- Edge deployment realism
-- Decode vs encoder asymmetry awareness
-- Architectural thinking beyond marketing metrics
-
-Nothing more.
-
-Freeze means freeze.
+No feature creep is allowed inside alpha.
