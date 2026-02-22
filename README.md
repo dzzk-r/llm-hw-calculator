@@ -1,6 +1,7 @@
 https://dzzk-r.github.io/llm-hw-calculator/
 
-![SidePanel Screenshot](docs/screenshot-v0.2.png)
+<img width="1434" height="954" alt="image" src="https://github.com/user-attachments/assets/c92aabb7-2d8e-45bf-b886-bfb1b150c4d8" />
+
 
 # LLM Hardware Calculator (React + Vite + Tailwind + Recharts)
 
