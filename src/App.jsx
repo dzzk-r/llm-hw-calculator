@@ -112,7 +112,7 @@ export default function App() {
       body: (
         <>
           <p className="text-zinc-300">
-            One-click configs intended to reflect edge constraints (RAM/bandwidth). They’re not "benchmarks" —
+            One-click configs intended to reflect edge constraints (RAM/bandwidth). They’re not "benchmarks" –
             they’re guardrails to expose impossible marketing.
           </p>
         </>
@@ -471,8 +471,9 @@ export default function App() {
 
   // Chart display toggles (UI-only)
   const [showTotalGiB, setShowTotalGiB] = useState(true);   // else: KV only
-  const [showCaps, setShowCaps] = useState(false);          // BW/Compute caps
   const [showKvGiB, setShowKvGiB] = useState(false);
+  const [showCaps, setShowCaps] = useState(false);          // BW (bandwidth)/Compute caps
+  const [showTokSec, setShowTokSec] = useState(true); // можно без тогглера, но лучше явно
 
   function applyEnginePreset(id) {
     const e = ENGINE_PRESETS.find(x => x.id === id);
@@ -542,7 +543,7 @@ export default function App() {
               <div className="grid gap-4 pb-2 mb-4">
                 <TierBlock
                     tone="green"
-                    title="🟢 GREEN — Core inputs (operator-friendly)"
+                    title="🟢 GREEN – Core inputs (operator-friendly)"
                     subtitle="Baseline controls. Keep stable. v0.3-alpha: layout only."
                     right={<span className="text-xs text-zinc-500">release-date: TBD (see TODO.md)</span>}
                 >
@@ -714,7 +715,7 @@ export default function App() {
                           title="Regime Classifier (planned)"
                           bullets={[
                             "Badge: Compute-bound / Bandwidth-bound / KV-bound / SRAM-spill.",
-                            "Keeps "TOPS != tok/s" visible in UI via bottleneck attribution.",
+                            "Keeps `TOPS != tok/s` visible in UI via bottleneck attribution.",
                           ]}
                           docHint="See TODO.md › Regime Classifier"
                       />
@@ -733,7 +734,7 @@ export default function App() {
 
                 <TierBlock
                     tone="yellow"
-                    title="🟡 YELLOW — Practical realism (systems-friendly)"
+                    title="🟡 YELLOW – Practical realism (systems-friendly)"
                     subtitle="Engine presets, KV realism knobs, overheads. Explains why TOPS!=tok/s."
                     right={<span className="text-xs text-zinc-500">release-date: TBD</span>}
                 >
@@ -742,7 +743,7 @@ export default function App() {
                     <div className="grid gap-2">
 
                       <div className="grid gap-2">
-                        <Card title="Edge-AI "sane defaults"">
+                        <Card title="Edge-AI `sane defaults`">
                           <div className="text-xs text-zinc-400 mb-2">
                             One-click configurations that match real edge constraints.
                           </div>
@@ -837,7 +838,7 @@ export default function App() {
                                 onChange={applyEnginePreset}
                                 options={ENGINE_PRESETS.map(e => ({
                                   value: e.id,
-                                  label: `${e.label} — ${e.desc}`,
+                                  label: `${e.label} – ${e.desc}`,
                                 }))}
                             />
 
@@ -951,7 +952,7 @@ export default function App() {
 
                 <TierBlock
                     tone="blue"
-                    title="🔵 BLUE — Advanced / Strategic layer (VP-friendly narrative)"
+                    title="🔵 BLUE – Advanced / Strategic layer (VP-friendly narrative)"
                     subtitle="Brand-masked accelerators, encoder/surveillance framing, competitive comparison (R-track)."
                     right={<span className="text-xs text-zinc-500">release-date: TBD</span>}
                     collapsible
@@ -1061,7 +1062,7 @@ export default function App() {
 
                 <Card title=""Impossible" explanations (how people claim 128k on 8–16GB)">
                   <div className="text-xs text-zinc-500 mb-3">
-                    Common escape hatches. If someone claims "30B + 128k + 8GB DDR4 + 20+ tok/s", one of these is used —
+                    Common escape hatches. If someone claims "30B + 128k + 8GB DDR4 + 20+ tok/s", one of these is used –
                     or
                     it’s nonsense.
                   </div>
@@ -1106,34 +1107,40 @@ export default function App() {
                 KV & tok/s evolve with context (effective KV respects sliding window).
               </div>
 
-              <div className="gap-4 mb-4 mt-6">
+              <div className="space-y-2 mb-3">
                 <Toggle
-                    label="Show: totalGiB"
+                    label="Show: Total memory (GiB)"
                     checked={showTotalGiB}
                     onChange={setShowTotalGiB}
-                    hint="Total memory incl. weights+KV+overheads"
+                    hint="Weights + KV + overheads"
                 />
                 <Toggle
-                    label="Show: KV only (kvGiB)"
+                    label="Show: KV only (GiB)"
                     checked={showKvGiB}
                     onChange={setShowKvGiB}
-                    hint="Only KV cache footprint vs context"
+                    hint="KV footprint only (effective KV respects sliding window)"
+                />
+                <Toggle
+                    label="Show: Decode tok/s"
+                    checked={showTokSec}
+                    onChange={setShowTokSec}
+                    hint="Final tok/s after caps"
                 />
                 <Toggle
                     label="Show: BW/Compute caps"
                     checked={showCaps}
                     onChange={setShowCaps}
-                    hint="Show separate compute vs bandwidth ceilings"
+                    hint="Show separate ceilings"
                 />
               </div>
 
-              <div className="h-60">
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={contextTable} margin={{top: 8, right: 18, left: 0, bottom: 0}}>
                     <CartesianGrid strokeDasharray="3 3"/>
                     <XAxis dataKey="context"/>
 
-                    {/* LEFT axis — Memory */}
+                    {/* Memory axis only if at least one memory series is visible */}
                     {(showTotalGiB || showKvGiB) ? (
                         <YAxis
                             yAxisId="memory"
@@ -1143,30 +1150,32 @@ export default function App() {
                         />
                     ) : null}
 
-                    {/* RIGHT axis — Throughput */}
-                    <YAxis
-                        yAxisId="throughput"
-                        orientation="right"
-                        tickFormatter={(v) => Number(v).toFixed(1)}
-                        domain={[0, "dataMax"]}
-                    />
+                    {/* Throughput axis only if at least one throughput series is visible */}
+                    {(showTokSec || showCaps) ? (
+                        <YAxis
+                            yAxisId="throughput"
+                            orientation="right"
+                            tickFormatter={(v) => Number(v).toFixed(1)}
+                            domain={[0, "dataMax"]}
+                        />
+                    ) : null}
 
                     <Tooltip content={<TooltipFmt/>} wrapperStyle={{outline: "none"}}/>
                     <Legend/>
 
-                    {/* Memory lines */}
-                    {showTotalGiB ? (
+                    {/* Memory series */}
+                    {showTotalGiB && (
                         <Line
                             yAxisId="memory"
                             type="monotone"
                             dataKey="totalGiB"
                             name="Total GiB"
-                            dot={true}
-                            strokeWidth={4}
+                            dot={false}
+                            strokeWidth={2}
                         />
-                    ) : null}
+                    )}
 
-                    {showKvGiB ? (
+                    {showKvGiB && (
                         <Line
                             yAxisId="memory"
                             type="monotone"
@@ -1175,25 +1184,27 @@ export default function App() {
                             dot={false}
                             strokeWidth={2}
                         />
-                    ) : null}
+                    )}
 
-                    {/* Throughput lines */}
-                    <Line
-                        yAxisId="throughput"
-                        type="monotone"
-                        dataKey="tokSecFinal"
-                        name="Decode tok/s"
-                        dot={false}
-                        strokeWidth={2}
-                    />
+                    {/* Throughput series */}
+                    {showTokSec && (
+                        <Line
+                            yAxisId="throughput"
+                            type="monotone"
+                            dataKey="tokSecFinal"
+                            name="Decode tok/s"
+                            dot={false}
+                            strokeWidth={2}
+                        />
+                    )}
 
-                    {showCaps ? (
+                    {showCaps && (
                         <>
                           <Line
                               yAxisId="throughput"
                               type="monotone"
                               dataKey="tokSecBW"
-                              name="tok/s (bansw. cap)"
+                              name="tok/s (Bandwidth cap)"
                               dot={false}
                           />
                           <Line
@@ -1204,7 +1215,7 @@ export default function App() {
                               dot={false}
                           />
                         </>
-                    ) : null}
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1215,7 +1226,7 @@ export default function App() {
               {/*      <CartesianGrid strokeDasharray="3 3"/>*/}
               {/*      <XAxis dataKey="context"/>*/}
 
-              {/*      /!* LEFT axis — Memory *!/*/}
+              {/*      /!* LEFT axis – Memory *!/*/}
               {/*      <YAxis*/}
               {/*          yAxisId="memory"*/}
               {/*          orientation="left"*/}
@@ -1223,7 +1234,7 @@ export default function App() {
               {/*          domain={[0, "dataMax"]}*/}
               {/*      />*/}
 
-              {/*      /!* RIGHT axis — Throughput *!/*/}
+              {/*      /!* RIGHT axis – Throughput *!/*/}
               {/*      <YAxis*/}
               {/*          yAxisId="throughput"*/}
               {/*          orientation="right"*/}
@@ -1306,19 +1317,19 @@ export default function App() {
                 </table>
               </div>
 
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" className="h-60">
                 <LineChart data={contextTable}>
                   <CartesianGrid strokeDasharray="3 3"/>
                   <XAxis dataKey="context"/>
 
-                  {/* LEFT axis — Memory */}
+                  {/* LEFT axis – Memory */}
                   <YAxis
                       yAxisId="memory"
                       orientation="left"
                       tickFormatter={(v) => Number(v).toFixed(1)}
                   />
 
-                  {/* RIGHT axis — Throughput */}
+                  {/* RIGHT axis – Throughput */}
                   <YAxis
                       yAxisId="throughput"
                       orientation="right"
@@ -1332,22 +1343,26 @@ export default function App() {
                   <Legend/>
 
                   {/* Memory line */}
-                  <Line
-                      yAxisId="memory"
-                      type="monotone"
-                      dataKey="totalGiB"
-                      name="Total GiB"
-                      dot={false}
-                  />
+                  {showTotalGiB && (
+                      <Line
+                          yAxisId="memory"
+                          type="monotone"
+                          dataKey="totalGiB"
+                          name="Total GiB"
+                          dot={false}
+                      />
+                  )}
 
                   {/* Throughput line */}
-                  <Line
-                      yAxisId="throughput"
-                      type="monotone"
-                      dataKey="tokSecFinal"
-                      name="Decode tok/s"
-                      dot={false}
-                  />
+                  {showKvGiB && (
+                      <Line
+                          yAxisId="throughput"
+                          type="monotone"
+                          dataKey="tokSecFinal"
+                          name="Decode tok/s"
+                          dot={false}
+                      />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
 
