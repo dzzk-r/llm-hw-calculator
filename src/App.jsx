@@ -38,6 +38,8 @@ import SidePanel from "./components/SidePanel.jsx";
 import SidePanelDock from "./components/SidePanelDock.jsx";
 import TierBlock from "./components/TierBlock.jsx";
 import PlannedCard from "./components/PlannedCard.jsx";
+import RegimeBadge from "./components/RegimeBadge.jsx";
+
 
 function fmt(n, digits=2) {
   return Number(n).toFixed(digits);
@@ -229,6 +231,24 @@ export default function App() {
 
     const status = classify({ totalGiB, ramGiB, tokSecFinal, context, kvTokensEff, paramsB });
 
+    // --- Regime classifier (UI-only heuristic; no math-core changes)
+    const headroomGiB = ramGiB * 0.92;
+    const kvOverflow = totalGiB > headroomGiB;
+
+    // Avoid noisy flips when close: use a tolerance band
+    const EPS = 0.10; // 10% band
+    let regime = "balanced";
+
+    if (kvOverflow) {
+      regime = "kv-overflow";
+    } else if (tokSecCompute < tokSecBW * (1 - EPS)) {
+      regime = "compute-bound";
+    } else if (tokSecBW < tokSecCompute * (1 - EPS)) {
+      regime = "bandwidth-bound";
+    } else {
+      regime = "balanced";
+    }
+
     const flags = [];
     if (context >= 128000 && !slidingWindowEnabled) flags.push("Full 128k KV grows linearly; edge RAM explodes.");
     if (kvHeads === heads) flags.push("No GQA/MQA (kvHeads=heads) › KV is maximal.");
@@ -248,6 +268,7 @@ export default function App() {
       tokSecCompute,
       tokSecBW,
       tokSecFinal,
+      regime,
       status,
       flags
     };
@@ -1121,6 +1142,7 @@ export default function App() {
                 <div className="text-sm font-semibold">Verdict</div>
               </div>
               <Badge tone={computed.status.tone}>{computed.status.text}</Badge>
+              <RegimeBadge regime={computed.regime} />
 
               <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                 <div className="text-zinc-400">Weights</div>
