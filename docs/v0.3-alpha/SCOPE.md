@@ -82,3 +82,5 @@ Once all acceptance criteria are satisfied,
 v0.3-alpha is frozen and tagged.
 
 No feature creep is allowed inside alpha.
+
+Release frozen: 2026-02-23
