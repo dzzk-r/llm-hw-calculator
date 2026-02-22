@@ -29,7 +29,7 @@ export const DEFAULT_CONTEXT_OPTIONS = [
   16384, 32768, 65536, 128000
 ];
 
-// “Llama-like-ish” shapes. These are not exact specs, but sane defaults for orders-of-magnitude.
+// "Llama-like-ish" shapes. These are not exact specs, but sane defaults for orders-of-magnitude.
 export const MODEL_PRESETS = [
   { id: "7b",  label: "7B (approx)",  paramsB: 7,  layers: 32, hidden: 4096, heads: 32, kvHeads: 32 },
   { id: "10b", label: "10B (approx)", paramsB: 10, layers: 40, hidden: 4608, heads: 36, kvHeads: 36 },

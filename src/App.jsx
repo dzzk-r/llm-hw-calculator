@@ -87,7 +87,7 @@ export default function App() {
         <>
           <p className="text-zinc-300">
             The UI is intentionally English for easy sharing and hosting. Your original discussion can stay RU/HE,
-            but the calculator remains “exportable”.
+            but the calculator remains "exportable".
           </p>
         </>
       ),
@@ -102,7 +102,7 @@ export default function App() {
           </p>
           <ul className="list-disc pl-5 mt-2 text-zinc-400 text-sm">
             <li>KV per token ≈ 2 × layers × head_dim × kvHeads × bytes</li>
-            <li>“128k context” claims usually rely on sliding windows / GQA / KV quant</li>
+            <li>"128k context" claims usually rely on sliding windows / GQA / KV quant</li>
           </ul>
         </>
       ),
@@ -112,7 +112,7 @@ export default function App() {
       body: (
         <>
           <p className="text-zinc-300">
-            One-click configs intended to reflect edge constraints (RAM/bandwidth). They’re not “benchmarks” —
+            One-click configs intended to reflect edge constraints (RAM/bandwidth). They’re not "benchmarks" —
             they’re guardrails to expose impossible marketing.
           </p>
         </>
@@ -176,7 +176,7 @@ export default function App() {
   const [attnReadFactor, setAttnReadFactor] = useState(1.0);
   const [weightsReadFactor, setWeightsReadFactor] = useState(1.0);
 
-  // RAM target (what user “has”)
+  // RAM target (what user "has")
   const [ramGiB, setRamGiB] = useState(32);
 
   // Apply preset -> values
@@ -469,6 +469,11 @@ export default function App() {
   const [scalingOpen, setScalingOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(true);
 
+  // Chart display toggles (UI-only)
+  const [showTotalGiB, setShowTotalGiB] = useState(true);   // else: KV only
+  const [showCaps, setShowCaps] = useState(false);          // BW/Compute caps
+  const [showKvGiB, setShowKvGiB] = useState(false);
+
   function applyEnginePreset(id) {
     const e = ENGINE_PRESETS.find(x => x.id === id);
     if (!e) return;
@@ -480,6 +485,7 @@ export default function App() {
     setKvExtraOverheadPct(e.kvExtraOverheadPct);
   }
 
+
   return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
         <div className="flex">
@@ -490,7 +496,7 @@ export default function App() {
                 <div>
                   <div className="text-2xl font-semibold">LLM Hardware Calculator</div>
                   <div className="text-sm text-zinc-400 mt-1">
-                    Memory (weights + KV) + compute & bandwidth sanity checks. Designed to expose “marketing nonsense”.
+                    Memory (weights + KV) + compute & bandwidth sanity checks. Designed to expose "marketing nonsense".
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
@@ -654,7 +660,7 @@ export default function App() {
                           Stored in <span className="text-zinc-300">localStorage</span>. No backend.
                         </div>
                         {profiles.length === 0 ? (
-                            <div className="text-sm text-zinc-400">No profiles yet. Click “Save profile”.</div>
+                            <div className="text-sm text-zinc-400">No profiles yet. Click "Save profile".</div>
                         ) : (
                             <div className="space-y-2">
                               {profiles.map((p) => (
@@ -699,7 +705,7 @@ export default function App() {
                       >
                         <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
                           <div className="font-semibold text-zinc-200 mb-1">Important: prefill vs decode</div>
-                          People often quote “tokens/sec” from prefill or averaged throughput. Real chat UX cares about{" "}
+                          People often quote "tokens/sec" from prefill or averaged throughput. Real chat UX cares about{" "}
                           <span className="text-zinc-200">decode tok/s</span>.
                         </div>
                       </PlannedCard>
@@ -708,7 +714,7 @@ export default function App() {
                           title="Regime Classifier (planned)"
                           bullets={[
                             "Badge: Compute-bound / Bandwidth-bound / KV-bound / SRAM-spill.",
-                            "Keeps “TOPS ≠ tok/s” visible in UI via bottleneck attribution.",
+                            "Keeps "TOPS != tok/s" visible in UI via bottleneck attribution.",
                           ]}
                           docHint="See TODO.md › Regime Classifier"
                       />
@@ -728,7 +734,7 @@ export default function App() {
                 <TierBlock
                     tone="yellow"
                     title="🟡 YELLOW — Practical realism (systems-friendly)"
-                    subtitle="Engine presets, KV realism knobs, overheads. Explains why TOPS≠tok/s."
+                    subtitle="Engine presets, KV realism knobs, overheads. Explains why TOPS!=tok/s."
                     right={<span className="text-xs text-zinc-500">release-date: TBD</span>}
                 >
                   <div className="grid md:grid-cols-2 gap-4">
@@ -736,7 +742,7 @@ export default function App() {
                     <div className="grid gap-2">
 
                       <div className="grid gap-2">
-                        <Card title="Edge-AI “sane defaults”">
+                        <Card title="Edge-AI "sane defaults"">
                           <div className="text-xs text-zinc-400 mb-2">
                             One-click configurations that match real edge constraints.
                           </div>
@@ -800,10 +806,10 @@ export default function App() {
                                   setKvHeads(Math.max(8, Math.floor(heads / 4)));
                                 }}
                             >
-                              <div className="text-sm text-zinc-200">“128k prompt” reality check (30B, sliding 8k, INT8
+                              <div className="text-sm text-zinc-200">"128k prompt" reality check (30B, sliding 8k, INT8
                                 KV)
                               </div>
-                              <div className="text-xs text-zinc-500">How “128k+” is marketed without 200GB KV.</div>
+                              <div className="text-xs text-zinc-500">How "128k+" is marketed without 200GB KV.</div>
                             </button>
                           </div>
                         </Card>
@@ -919,7 +925,7 @@ export default function App() {
                           </div>
 
                           <div className="mt-3 text-xs text-zinc-500">
-                            INT4 weights are “minimum”; real engines add scales/zeros + workspace.
+                            INT4 weights are "minimum"; real engines add scales/zeros + workspace.
                           </div>
                         </Card>
                       </div>
@@ -955,7 +961,7 @@ export default function App() {
                     <PlannedCard
                         title="Runtime amplification layer (planned)"
                         bullets={[
-                          "Keep ‘TOPS ≠ tok/s’ visible: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.",
+                          "Keep ‘TOPS != tok/s’ visible: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.",
                           "Surface hidden multipliers: alignment, fragmentation, copiesFactor, paged-KV overhead.",
                           "Explain why some setups look fast on prefill but collapse on decode.",
                         ]}
@@ -981,9 +987,9 @@ export default function App() {
                     </div>
 
                     <div className="mt-2 space-y-1">
-                      <div>• “TOPS ≠ tok/s”: decode bottlenecks = KV + bandwidth + scheduler + runtime copies.</div>
+                      <div>• "TOPS != tok/s": decode bottlenecks = KV + bandwidth + scheduler + runtime copies.</div>
                       <div>• Masked accelerators presets: h8m2 / h10hm2 / nvo / nvj + R-track (r3x / r18x).</div>
-                      <div>• Encoder narrative: what it accelerates (vision encoder ≠ STT encoder).</div>
+                      <div>• Encoder narrative: what it accelerates (vision encoder != STT encoder).</div>
                     </div>
 
                     <div className="mt-3 pt-2 border-t border-zinc-900">
@@ -1026,7 +1032,7 @@ export default function App() {
                       <div className="mt-2 text-zinc-500">
                         If you prefer local docs, move them into <span className="text-zinc-300">public/docs</span> and
                         link as
-                        <span className="text-zinc-300"> /docs/…</span>.
+                        <span className="text-zinc-300"> /docs/...</span>.
                       </div>
                     </div>
                   </div>
@@ -1053,9 +1059,9 @@ export default function App() {
                   </div>
                 </Card>
 
-                <Card title="“Impossible” explanations (how people claim 128k on 8–16GB)">
+                <Card title=""Impossible" explanations (how people claim 128k on 8–16GB)">
                   <div className="text-xs text-zinc-500 mb-3">
-                    Common escape hatches. If someone claims “30B + 128k + 8GB DDR4 + 20+ tok/s”, one of these is used —
+                    Common escape hatches. If someone claims "30B + 128k + 8GB DDR4 + 20+ tok/s", one of these is used —
                     or
                     it’s nonsense.
                   </div>
@@ -1075,7 +1081,7 @@ export default function App() {
 
                   <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
                     <div className="font-semibold text-zinc-200 mb-1">Important: prefill vs decode</div>
-                    People often quote “tokens/sec” from prefill or averaged throughput. Real chat UX cares about <span
+                    People often quote "tokens/sec" from prefill or averaged throughput. Real chat UX cares about <span
                       className="text-zinc-200">decode tok/s</span>.
                   </div>
                 </Card>
@@ -1099,19 +1105,175 @@ export default function App() {
               <div className="text-xs text-zinc-500 mb-2">
                 KV & tok/s evolve with context (effective KV respects sliding window).
               </div>
-              <div className="h-72">
+
+              <div className="gap-4 mb-4 mt-6">
+                <Toggle
+                    label="Show: totalGiB"
+                    checked={showTotalGiB}
+                    onChange={setShowTotalGiB}
+                    hint="Total memory incl. weights+KV+overheads"
+                />
+                <Toggle
+                    label="Show: KV only (kvGiB)"
+                    checked={showKvGiB}
+                    onChange={setShowKvGiB}
+                    hint="Only KV cache footprint vs context"
+                />
+                <Toggle
+                    label="Show: BW/Compute caps"
+                    checked={showCaps}
+                    onChange={setShowCaps}
+                    hint="Show separate compute vs bandwidth ceilings"
+                />
+              </div>
+
+              <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={contextTable}>
+                  <LineChart data={contextTable} margin={{top: 8, right: 18, left: 0, bottom: 0}}>
                     <CartesianGrid strokeDasharray="3 3"/>
                     <XAxis dataKey="context"/>
-                    <YAxis/>
-                    <Tooltip content={<TooltipFmt/>}/>
+
+                    {/* LEFT axis — Memory */}
+                    {(showTotalGiB || showKvGiB) ? (
+                        <YAxis
+                            yAxisId="memory"
+                            orientation="left"
+                            tickFormatter={(v) => Number(v).toFixed(1)}
+                            domain={[0, "dataMax"]}
+                        />
+                    ) : null}
+
+                    {/* RIGHT axis — Throughput */}
+                    <YAxis
+                        yAxisId="throughput"
+                        orientation="right"
+                        tickFormatter={(v) => Number(v).toFixed(1)}
+                        domain={[0, "dataMax"]}
+                    />
+
+                    <Tooltip content={<TooltipFmt/>} wrapperStyle={{outline: "none"}}/>
                     <Legend/>
-                    <Line type="monotone" dataKey="totalGiB" name="Total GiB" dot={false}/>
-                    <Line type="monotone" dataKey="tokSecFinal" name="tok/s (final)" dot={false}/>
+
+                    {/* Memory lines */}
+                    {showTotalGiB ? (
+                        <Line
+                            yAxisId="memory"
+                            type="monotone"
+                            dataKey="totalGiB"
+                            name="Total GiB"
+                            dot={true}
+                            strokeWidth={4}
+                        />
+                    ) : null}
+
+                    {showKvGiB ? (
+                        <Line
+                            yAxisId="memory"
+                            type="monotone"
+                            dataKey="kvGiB"
+                            name="KV GiB"
+                            dot={false}
+                            strokeWidth={2}
+                        />
+                    ) : null}
+
+                    {/* Throughput lines */}
+                    <Line
+                        yAxisId="throughput"
+                        type="monotone"
+                        dataKey="tokSecFinal"
+                        name="Decode tok/s"
+                        dot={false}
+                        strokeWidth={2}
+                    />
+
+                    {showCaps ? (
+                        <>
+                          <Line
+                              yAxisId="throughput"
+                              type="monotone"
+                              dataKey="tokSecBW"
+                              name="tok/s (bansw. cap)"
+                              dot={false}
+                          />
+                          <Line
+                              yAxisId="throughput"
+                              type="monotone"
+                              dataKey="tokSecCompute"
+                              name="tok/s (compute cap)"
+                              dot={false}
+                          />
+                        </>
+                    ) : null}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+
+              {/*<div className="h-80">*/}
+              {/*  <ResponsiveContainer width="100%" height="100%">*/}
+              {/*    <LineChart data={contextTable} margin={{top: 8, right: 18, left: 0, bottom: 0}}>*/}
+              {/*      <CartesianGrid strokeDasharray="3 3"/>*/}
+              {/*      <XAxis dataKey="context"/>*/}
+
+              {/*      /!* LEFT axis — Memory *!/*/}
+              {/*      <YAxis*/}
+              {/*          yAxisId="memory"*/}
+              {/*          orientation="left"*/}
+              {/*          tickFormatter={(v) => Number(v).toFixed(1)}*/}
+              {/*          domain={[0, "dataMax"]}*/}
+              {/*      />*/}
+
+              {/*      /!* RIGHT axis — Throughput *!/*/}
+              {/*      <YAxis*/}
+              {/*          yAxisId="throughput"*/}
+              {/*          orientation="right"*/}
+              {/*          tickFormatter={(v) => Number(v).toFixed(1)}*/}
+              {/*          domain={[0, "dataMax"]}*/}
+              {/*      />*/}
+
+              {/*      <Tooltip*/}
+              {/*          content={<TooltipFmt/>}*/}
+              {/*          wrapperStyle={{outline: "none"}}*/}
+              {/*      />*/}
+              {/*      <Legend/>*/}
+
+              {/*      /!* Memory line *!/*/}
+              {/*      <Line*/}
+              {/*          yAxisId="memory"*/}
+              {/*          type="monotone"*/}
+              {/*          dataKey="totalGiB"*/}
+              {/*          name="Total GiB"*/}
+              {/*          dot={false}*/}
+              {/*          strokeWidth={2}*/}
+              {/*      />*/}
+
+              {/*      /!* Throughput line *!/*/}
+              {/*      <Line*/}
+              {/*          yAxisId="throughput"*/}
+              {/*          type="monotone"*/}
+              {/*          dataKey="tokSecFinal"*/}
+              {/*          name="Decode tok/s"*/}
+              {/*          dot={true}*/}
+              {/*          strokeWidth={2}*/}
+              {/*      />*/}
+
+              {/*      <Line*/}
+              {/*          yAxisId="throughput"*/}
+              {/*          type="monotone"*/}
+              {/*          dataKey="tokSecBW"*/}
+              {/*          name="tok/s (bandwidth cap)"*/}
+              {/*          dot={false}*/}
+              {/*      />*/}
+              {/*      <Line*/}
+              {/*          yAxisId="throughput"*/}
+              {/*          type="monotone"*/}
+              {/*          dataKey="tokSecCompute"*/}
+              {/*          name="tok/s (compute cap)"*/}
+              {/*          dot={false}*/}
+              {/*      />*/}
+              {/*    </LineChart>*/}
+              {/*  </ResponsiveContainer>*/}
+              {/*</div>*/}
 
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-xs border border-zinc-800 rounded-xl overflow-hidden">
@@ -1125,6 +1287,14 @@ export default function App() {
                   </thead>
                   <tbody>
                   {contextTable.map((r) => (
+                      // return {
+                      //   context: ctx,
+                      //   kvGiB,
+                      //   totalGiB,
+                      //   tokSecFinal,
+                      //   tokSecBW,
+                      //   tokSecCompute,
+                      // };
                       <tr key={r.context} className="odd:bg-zinc-950 even:bg-zinc-950/60">
                         <td className="p-2 border-b border-zinc-900">{r.context}</td>
                         <td className="p-2 border-b border-zinc-900 text-right">{fmt(r.kvGiB, 2)}</td>
@@ -1135,14 +1305,62 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
+
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={contextTable}>
+                  <CartesianGrid strokeDasharray="3 3"/>
+                  <XAxis dataKey="context"/>
+
+                  {/* LEFT axis — Memory */}
+                  <YAxis
+                      yAxisId="memory"
+                      orientation="left"
+                      tickFormatter={(v) => Number(v).toFixed(1)}
+                  />
+
+                  {/* RIGHT axis — Throughput */}
+                  <YAxis
+                      yAxisId="throughput"
+                      orientation="right"
+                      tickFormatter={(v) => Number(v).toFixed(1)}
+                  />
+
+                  <Tooltip
+                      wrapperStyle={{outline: "none"}}
+                      content={<TooltipFmt/>}
+                  />
+                  <Legend/>
+
+                  {/* Memory line */}
+                  <Line
+                      yAxisId="memory"
+                      type="monotone"
+                      dataKey="totalGiB"
+                      name="Total GiB"
+                      dot={false}
+                  />
+
+                  {/* Throughput line */}
+                  <Line
+                      yAxisId="throughput"
+                      type="monotone"
+                      dataKey="tokSecFinal"
+                      name="Decode tok/s"
+                      dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+
+
             </Card>
+
             <br/>
             <Card>
               <div className="flex items-center justify-between gap-2 mt-2">
                 <div className="text-sm font-semibold">Verdict</div>
               </div>
               <Badge tone={computed.status.tone}>{computed.status.text}</Badge>
-              <RegimeBadge regime={computed.regime} />
+              <RegimeBadge regime={computed.regime}/>
 
               <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                 <div className="text-zinc-400">Weights</div>

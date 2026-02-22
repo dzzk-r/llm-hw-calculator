@@ -7,14 +7,14 @@ export default function Toggle({ label, checked, onChange, hint }) {
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`w-12 h-7 rounded-full border transition ${
+        className={`w-10 h-6 rounded-full border transition ${
           checked ? "bg-emerald-700/40 border-emerald-800" : "bg-zinc-900 border-zinc-700"
         }`}
         type="button"
         aria-pressed={checked}
       >
-        <div className={`h-6 w-6 rounded-full bg-zinc-200 transition translate-y-[1px] ${
-          checked ? "translate-x-5" : "translate-x-1"
+        <div className={`h-5 w-5 rounded-full bg-zinc-200 transition translate-y-[1px] ${
+          checked ? "translate-x-4" : "translate-x-1"
         }`} />
       </button>
     </div>

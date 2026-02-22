@@ -31,7 +31,7 @@
 
 ### Core Policies
 1.  **TOPS != tok/s:** All UI elements and tooltips must reinforce that memory bandwidth and scheduler efficiency are the primary bottlenecks.
-2.  **Architectural Integrity:** Every task must remain traceable to the systemic constraints discussed in `docs/LM_Context.md`.
+2.  **Architectural Integrity:** Every task must remain traceable to the systemic constraints discussed in `docs/Edge_Architectural_Constraints.md`.
 3.  **Vendor Neutrality:** Public repository assets must remain brand-agnostic; internal mappings are kept in private dev notes only.
 
 ---
@@ -49,7 +49,7 @@ Size guide:
 
 ### Prefill vs Decode Separation
 Size: M (6–8h)  
-Docs: LM_Context.md  
+Docs: docs/Edge_Architectural_Constraints.md  
 Description:
 Separate prompt-loading throughput from decode throughput.
 Expose both metrics in UI.
@@ -58,7 +58,7 @@ Expose both metrics in UI.
 
 ### Encoder Workload Mode
 Size: M (6–10h)  
-Docs: LM_Context.md (Encoder asymmetry)  
+Docs: docs/Edge_Architectural_Constraints.md (Encoder asymmetry)  
 Description:
 Add workload selector:
 - LLM (autoregressive)
@@ -69,7 +69,7 @@ Add workload selector:
 
 ### Deterministic Mode
 Size: M–L (8–12h)  
-Docs: LM_Context.md (Edge realism)  
+Docs: docs/Edge_Architectural_Constraints.md (Edge realism)  
 Description:
 Fixed window enforcement.
 Latency-priority modeling.
@@ -80,7 +80,7 @@ Latency-priority modeling.
 
 ### SRAM Fit Detection
 Size: M (6–8h)  
-Docs: LM_Context.md  
+Docs: docs/Edge_Architectural_Constraints.md~~~~  
 Description:
 Add SRAM capacity parameter.
 Trigger regime "SRAM-spill" when exceeded.
