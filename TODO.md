@@ -33,3 +33,85 @@
 1.  **TOPS != tok/s:** All UI elements and tooltips must reinforce that memory bandwidth and scheduler efficiency are the primary bottlenecks.
 2.  **Architectural Integrity:** Every task must remain traceable to the systemic constraints discussed in `docs/LM_Context.md`.
 3.  **Vendor Neutrality:** Public repository assets must remain brand-agnostic; internal mappings are kept in private dev notes only.
+
+---
+
+## Effort Estimation (T-Shirt Sizing)
+
+Size guide:
+- S = 1–3 hours
+- M = 4–8 hours
+- L = 9–16 hours
+
+---
+
+## GREEN (Operator Layer)
+
+### Prefill vs Decode Separation
+Size: M (6–8h)  
+Docs: LM_Context.md  
+Description:
+Separate prompt-loading throughput from decode throughput.
+Expose both metrics in UI.
+
+---
+
+### Encoder Workload Mode
+Size: M (6–10h)  
+Docs: LM_Context.md (Encoder asymmetry)  
+Description:
+Add workload selector:
+- LLM (autoregressive)
+- Encoder (stateless)
+  Disable KV growth in encoder mode.
+
+---
+
+### Deterministic Mode
+Size: M–L (8–12h)  
+Docs: LM_Context.md (Edge realism)  
+Description:
+Fixed window enforcement.
+Latency-priority modeling.
+
+---
+
+## YELLOW (System Realism)
+
+### SRAM Fit Detection
+Size: M (6–8h)  
+Docs: LM_Context.md  
+Description:
+Add SRAM capacity parameter.
+Trigger regime "SRAM-spill" when exceeded.
+
+---
+
+### Spill Penalty Modeling
+Size: M (6h)  
+Docs: Runtime_Amplification_Layer.md  
+Description:
+Apply throughput multiplier when KV spills beyond fast memory tier.
+
+---
+
+## BLUE (Runtime Amplification Layer)
+
+### Scheduler Efficiency Coefficient
+Size: L (12–16h)  
+Docs: Runtime_Amplification_Layer.md
+
+---
+
+### Multi-Stream Contention Modeling
+Size: L (12–16h)  
+Docs: Runtime_Amplification_Layer.md
+
+---
+
+## Deferred (v0.4+)
+
+- Power envelope modeling
+- Thermal throttling curves
+- Fleet-level orchestration constraints
+

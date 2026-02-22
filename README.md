@@ -56,3 +56,13 @@ Core thesis:
 v0.3 introduces structured constraint modeling across three UI layers.
 
 See docs/ for architectural alignment and competitive context.
+
+## v0.3-alpha Scope
+This version focuses on:
+- Bottleneck regime classification
+- KV-aware context scaling
+- Constraint visualization
+
+Future work:
+See TODO.md
+
