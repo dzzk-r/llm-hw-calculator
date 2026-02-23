@@ -486,6 +486,9 @@ export default function App() {
     setKvExtraOverheadPct(e.kvExtraOverheadPct);
   }
 
+  const showMem = showTotalGiB || showKvGiB;          // показываем ли вообще память
+  const showCapsLines = showCaps;                     // compute/bw caps
+  const showThroughput = showTokSec || showCaps;
 
   return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -1041,53 +1044,6 @@ export default function App() {
               </div>
               {/**/}
 
-              {/*
-              <div className="grid md:grid-cols-2 gap-4 mt-4">
-                <Card
-                    title="Scaling table + chart"
-                    right={
-                      <button
-                          onClick={() => setScalingOpen(true)}
-                          className="text-xs px-2 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500"
-                          type="button"
-                      >
-                        Open
-                      </button>
-                    }
-                >
-                  <div className="text-sm text-zinc-400">
-                    Open the side panel to view the full scaling chart + table (context vs KV vs tok/s).
-                  </div>
-                </Card>
-
-                <Card title=""Impossible" explanations (how people claim 128k on 8–16GB)">
-                  <div className="text-xs text-zinc-500 mb-3">
-                    Common escape hatches. If someone claims "30B + 128k + 8GB DDR4 + 20+ tok/s", one of these is used –
-                    or
-                    it’s nonsense.
-                  </div>
-
-                  <div className="space-y-3">
-                    {IMPOSSIBLE_TRICKS.map((t) => (
-                        <div key={t.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="text-sm text-zinc-200 font-semibold">{t.title}</div>
-                            <Badge tone="info">escape hatch</Badge>
-                          </div>
-                          <div className="text-xs text-zinc-400 mt-2">Effect: {t.effect}</div>
-                          <div className="text-xs text-zinc-500 mt-1">What changes: {t.whatChanges}</div>
-                        </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
-                    <div className="font-semibold text-zinc-200 mb-1">Important: prefill vs decode</div>
-                    People often quote "tokens/sec" from prefill or averaged throughput. Real chat UX cares about <span
-                      className="text-zinc-200">decode tok/s</span>.
-                  </div>
-                </Card>
-              </div>
-              */}
               <div className="mt-6 text-xs text-zinc-500">
                 Disclaimer: model shapes are approximate; bandwidth model is intentionally pessimistic to flag
                 impossible
@@ -1136,155 +1092,89 @@ export default function App() {
 
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={contextTable} margin={{top: 8, right: 18, left: 0, bottom: 0}}>
-                    <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="context"/>
+                  <LineChart data={contextTable} margin={{ top: 8, right: 18, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="context" />
 
-                    {/* Memory axis only if at least one memory series is visible */}
-                    {(showTotalGiB || showKvGiB) ? (
-                        <YAxis
-                            yAxisId="memory"
-                            orientation="left"
-                            tickFormatter={(v) => Number(v).toFixed(1)}
-                            domain={[0, "dataMax"]}
-                        />
-                    ) : null}
+                    {/* Оси ВСЕГДА есть — это убирает invariant краши */}
+                    <YAxis
+                      yAxisId="memory"
+                      orientation="left"
+                      tickFormatter={(v) => Number(v).toFixed(1)}
+                      domain={[0, "dataMax"]}
+                      hide={!showMem}
+                    />
+                    <YAxis
+                      yAxisId="throughput"
+                      orientation="right"
+                      tickFormatter={(v) => Number(v).toFixed(1)}
+                      domain={[0, "dataMax"]}
+                      hide={!showThroughput}
+                    />
 
-                    {/* Throughput axis only if at least one throughput series is visible */}
-                    {(showTokSec || showCaps) ? (
-                        <YAxis
-                            yAxisId="throughput"
-                            orientation="right"
-                            tickFormatter={(v) => Number(v).toFixed(1)}
-                            domain={[0, "dataMax"]}
-                        />
-                    ) : null}
-
-                    <Tooltip content={<TooltipFmt/>} wrapperStyle={{outline: "none"}}/>
-                    <Legend/>
+                    <Tooltip
+                      content={<TooltipFmt />}
+                      wrapperStyle={{ outline: "none" }}
+                    />
+                    <Legend />
 
                     {/* Memory series */}
                     {showTotalGiB && (
-                        <Line
-                            yAxisId="memory"
-                            type="monotone"
-                            dataKey="totalGiB"
-                            name="Total GiB"
-                            dot={false}
-                            strokeWidth={2}
-                        />
+                    <Line
+                        yAxisId="memory"
+                        type="monotone"
+                        dataKey="totalGiB"
+                        name="Total GiB"
+                        dot={true}
+                        strokeWidth={3}
+                        stroke="#14532d"
+                    />
                     )}
 
                     {showKvGiB && (
-                        <Line
-                            yAxisId="memory"
-                            type="monotone"
-                            dataKey="kvGiB"
-                            name="KV GiB"
-                            dot={false}
-                            strokeWidth={2}
-                        />
+                    <Line
+                        yAxisId="memory"
+                        type="monotone"
+                        dataKey="kvGiB"
+                        name="KV GiB"
+                        dot={false}
+                        strokeWidth={2}
+                    />
                     )}
 
                     {/* Throughput series */}
                     {showTokSec && (
-                        <Line
-                            yAxisId="throughput"
-                            type="monotone"
-                            dataKey="tokSecFinal"
-                            name="Decode tok/s"
-                            dot={false}
-                            strokeWidth={2}
-                        />
+                    <Line
+                        yAxisId="throughput"
+                        type="monotone"
+                        dataKey="tokSecFinal"
+                        name="Decode tok/s"
+                        dot={false}
+                        strokeWidth={2}
+                    />
                     )}
 
                     {showCaps && (
-                        <>
-                          <Line
-                              yAxisId="throughput"
-                              type="monotone"
-                              dataKey="tokSecBW"
-                              name="tok/s (Bandwidth cap)"
-                              dot={false}
-                          />
-                          <Line
-                              yAxisId="throughput"
-                              type="monotone"
-                              dataKey="tokSecCompute"
-                              name="tok/s (compute cap)"
-                              dot={false}
-                          />
-                        </>
+                    <>
+                      <Line
+                        yAxisId="throughput"
+                        type="monotone"
+                        dataKey="tokSecBW"
+                        name="tok/s (bandwidth cap)"
+                        dot={false}
+                      />
+                      <Line
+                        yAxisId="throughput"
+                        type="monotone"
+                        dataKey="tokSecCompute"
+                        name="tok/s (compute cap)"
+                        dot={false}
+                      />
+                    </>
                     )}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-
-              {/*<div className="h-80">*/}
-              {/*  <ResponsiveContainer width="100%" height="100%">*/}
-              {/*    <LineChart data={contextTable} margin={{top: 8, right: 18, left: 0, bottom: 0}}>*/}
-              {/*      <CartesianGrid strokeDasharray="3 3"/>*/}
-              {/*      <XAxis dataKey="context"/>*/}
-
-              {/*      /!* LEFT axis – Memory *!/*/}
-              {/*      <YAxis*/}
-              {/*          yAxisId="memory"*/}
-              {/*          orientation="left"*/}
-              {/*          tickFormatter={(v) => Number(v).toFixed(1)}*/}
-              {/*          domain={[0, "dataMax"]}*/}
-              {/*      />*/}
-
-              {/*      /!* RIGHT axis – Throughput *!/*/}
-              {/*      <YAxis*/}
-              {/*          yAxisId="throughput"*/}
-              {/*          orientation="right"*/}
-              {/*          tickFormatter={(v) => Number(v).toFixed(1)}*/}
-              {/*          domain={[0, "dataMax"]}*/}
-              {/*      />*/}
-
-              {/*      <Tooltip*/}
-              {/*          content={<TooltipFmt/>}*/}
-              {/*          wrapperStyle={{outline: "none"}}*/}
-              {/*      />*/}
-              {/*      <Legend/>*/}
-
-              {/*      /!* Memory line *!/*/}
-              {/*      <Line*/}
-              {/*          yAxisId="memory"*/}
-              {/*          type="monotone"*/}
-              {/*          dataKey="totalGiB"*/}
-              {/*          name="Total GiB"*/}
-              {/*          dot={false}*/}
-              {/*          strokeWidth={2}*/}
-              {/*      />*/}
-
-              {/*      /!* Throughput line *!/*/}
-              {/*      <Line*/}
-              {/*          yAxisId="throughput"*/}
-              {/*          type="monotone"*/}
-              {/*          dataKey="tokSecFinal"*/}
-              {/*          name="Decode tok/s"*/}
-              {/*          dot={true}*/}
-              {/*          strokeWidth={2}*/}
-              {/*      />*/}
-
-              {/*      <Line*/}
-              {/*          yAxisId="throughput"*/}
-              {/*          type="monotone"*/}
-              {/*          dataKey="tokSecBW"*/}
-              {/*          name="tok/s (bandwidth cap)"*/}
-              {/*          dot={false}*/}
-              {/*      />*/}
-              {/*      <Line*/}
-              {/*          yAxisId="throughput"*/}
-              {/*          type="monotone"*/}
-              {/*          dataKey="tokSecCompute"*/}
-              {/*          name="tok/s (compute cap)"*/}
-              {/*          dot={false}*/}
-              {/*      />*/}
-              {/*    </LineChart>*/}
-              {/*  </ResponsiveContainer>*/}
-              {/*</div>*/}
 
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-xs border border-zinc-800 rounded-xl overflow-hidden">
@@ -1298,14 +1188,6 @@ export default function App() {
                   </thead>
                   <tbody>
                   {contextTable.map((r) => (
-                      // return {
-                      //   context: ctx,
-                      //   kvGiB,
-                      //   totalGiB,
-                      //   tokSecFinal,
-                      //   tokSecBW,
-                      //   tokSecCompute,
-                      // };
                       <tr key={r.context} className="odd:bg-zinc-950 even:bg-zinc-950/60">
                         <td className="p-2 border-b border-zinc-900">{r.context}</td>
                         <td className="p-2 border-b border-zinc-900 text-right">{fmt(r.kvGiB, 2)}</td>
@@ -1324,52 +1206,51 @@ export default function App() {
 
                   {/* LEFT axis – Memory */}
                   <YAxis
-                      yAxisId="memory"
-                      orientation="left"
-                      tickFormatter={(v) => Number(v).toFixed(1)}
+                    yAxisId="memory"
+                    orientation="left"
+                    tickFormatter={(v) => Number(v).toFixed(1)}
                   />
 
                   {/* RIGHT axis – Throughput */}
                   <YAxis
-                      yAxisId="throughput"
-                      orientation="right"
-                      tickFormatter={(v) => Number(v).toFixed(1)}
+                    yAxisId="throughput"
+                    orientation="right"
+                    tickFormatter={(v) => Number(v).toFixed(1)}
                   />
 
                   <Tooltip
-                      wrapperStyle={{outline: "none"}}
-                      content={<TooltipFmt/>}
+                    wrapperStyle={{outline: "none"}}
+                    content={<TooltipFmt/>}
                   />
                   <Legend/>
 
                   {/* Memory line */}
                   {showTotalGiB && (
-                      <Line
-                          yAxisId="memory"
-                          type="monotone"
-                          dataKey="totalGiB"
-                          name="Total GiB"
-                          dot={false}
-                      />
+                  <Line
+                    yAxisId="memory"
+                    type="monotone"
+                    dataKey="totalGiB"
+                    name="Total GiB"
+                    dot={false}
+                  />
                   )}
 
                   {/* Throughput line */}
                   {showKvGiB && (
-                      <Line
-                          yAxisId="throughput"
-                          type="monotone"
-                          dataKey="tokSecFinal"
-                          name="Decode tok/s"
-                          dot={false}
-                      />
+                  <Line
+                    yAxisId="throughput"
+                    type="monotone"
+                    dataKey="tokSecFinal"
+                    name="Decode tok/s"
+                    dot={false}
+                  />
                   )}
                 </LineChart>
               </ResponsiveContainer>
-
-
             </Card>
 
             <br/>
+
             <Card>
               <div className="flex items-center justify-between gap-2 mt-2">
                 <div className="text-sm font-semibold">Verdict</div>
